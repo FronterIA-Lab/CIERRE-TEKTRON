@@ -1,0 +1,72 @@
+No deshicimos nada. Todo está en el nodo y todo es reversible. Te doy el estado exacto, sin interpretación.
+Qué hay ahora mismo
+Fase, según tu documento	Estado real
+0 Blindaje	✅ hecho
+1 Mapa	✅ es el punto 5 de este documento
+2 Curación: "filtrado contra el mapa, eliminando FUERA"	✅ hecho — 1,123 chunks fuera, 3,624 reetiquetados
+3 Índice: "60,652 chunks funcionales"	❌ el nodo sirve 11,640
+4 Gate	pendiente
+5 Interfaz honesta	✅ el backend aplica el MCC y devuelve análisis
+6 Acta	pendiente
+Nada se perdió: index_l1_precuracion_20260819 conserva los 12,763 anteriores y el swap se revierte con dos mv.
+Dónde está el problema
+Tu propio documento dice que la Fase 3 son 60,652 chunks funcionales. El nodo sirve 11,640. Faltan 49,012.
+Eso no es un detalle contable. Cambia el diagnóstico entero:
+Si los 60,652 existen en el SSD y están desconectados, el corpus no está delgado, está desconectado — y anoche curamos el 19% mientras el resto está en otro directorio. La Fase 2 habría que rehacerla sobre el índice completo.
+Si nunca existieron, entonces la Fase 3 de tu documento describe algo que no está, y el corpus sí es delgado.
+No sé cuál de las dos es. Te lo mencioné tres veces y lo traté como un dato para el acta en vez de medirlo. Ese fue el error: es la pregunta que decide todo lo demás, no una nota al pie.
+Los dos comandos que lo resuelven
+sudo find / -name "chunks.jsonl" 2>/dev/null | grep -v "index_l1/"
+du -sh /mnt/tektron/*/ 2>/dev/null | sort -rh | head -20
+El primero busca otros índices en todo el disco. El segundo muestra qué directorios pesan y dónde podría estar material sin indexar.
+Con esa salida sabemos si TEKTRON tiene 60,652 chunks esperando conexión o si hay que construirlos. Y hasta tenerla, cualquier cosa que yo diga sobre el Gate o el acta es prematura.
+
+—
+
+<analisis_sistema>
+/mnt/tektron/corpus/ pesa 18 GB. index_l1/ pesa 114 MB.
+Los 11,640 chunks salen de 509 fuentes. Un corpus de 18 GB no cabe en 509 archivos de texto: son miles de documentos. La proporción no cuadra por dos órdenes de magnitud.
+Además hay _clacso_archivo/ con 5.8 GB, que por el nombre es material de epistemologías del Sur — categoría ENTRA del punto 5.
+Y los chunks.jsonl de _archivo/corpus_pre_f15_20260814/ están por granero: 01_epistemologias, 03_legal_territorial, 04_extractivismo, 09_soberania_alimentaria. Eso es una arquitectura anterior de índices separados por granero, no un índice único.
+</analisis_sistema>
+La hipótesis que hay que descartar antes que nada
+Los 60,652 chunks de tu Fase 3 pueden ser la suma de los índices por granero de corpus_pre_f15_20260814, y index_l1 con 12,763 puede haber sido construido desde un subconjunto, no desde todo.
+Si es así, el problema nunca fue de curación ni de etiquetas. Es que el índice vivo se construyó sobre una fracción del corpus.
+Tres comandos, solo leen, y contestan definitivamente:
+for f in $(find /mnt/tektron/_archivo/corpus_pre_f15_20260814 -name "chunks.jsonl"); do printf "%8d  %s\n" $(wc -l < "$f") "$(echo $f | cut -d/ -f5)"; done | sort -rn; echo "---"; find /mnt/tektron/_archivo/corpus_pre_f15_20260814 -name "chunks.jsonl" -exec cat {} + | wc -l
+du -sh /mnt/tektron/corpus/*/ 2>/dev/null | sort -rh | head -20; echo "--- documentos por tipo ---"; find /mnt/tektron/corpus -type f \( -iname "*.pdf" -o -iname "*.txt" -o -iname "*.md" -o -iname "*.epub" \) 2>/dev/null | wc -l
+du -sh /mnt/tektron/_clacso_archivo/ && find /mnt/tektron/_clacso_archivo -type f -iname "*.pdf" 2>/dev/null | wc -l
+El primero suma los chunks de los índices por granero. Si da cerca de 60,652, encontramos tu Fase 3.
+El segundo cuenta los documentos fuente en los 18 GB. Ese número contra 509 te dice cuánto del corpus real llegó al índice.
+El tercero mide el archivo de CLACSO, que es material ENTRA del punto 5 y no está en el índice.
+Con esos tres números sabremos si TEKTRON está desconectado de su propio corpus. Y entonces la Fase 2 no habría estado mal ejecutada — habría estado ejecutada sobre el material equivocado.
+
+—
+
+——
+
+No perdimos nada. Todo está en disco y es reversible. Antes de seguir, dejemos eso claro con hechos, no con tranquilizadores:
+index_l1_precuracion_20260819 — 213 MB, el índice de 12,763 chunks tal como estaba antes de anoche._snapshots/ — 249 MB, la Fase 0. chunks.jsonl.retorno_20260818 — punto de retorno con sha256 verificado._archivo/corpus_pre_f15_20260814/ — 23 GB, tu trabajo previo de curación por granero.
+Revertir es dos mv. Nada de anoche destruyó nada.
+Y me detengo aquí porque estoy a punto de repetir el mismo error: acabo de sugerirte que el corpus está desconectado y que habría que rehacer la Fase 2. Eso es una hipótesis mía sobre tu trabajo, no un hecho. Tú dices que ya lo tenías revisado y limpio. Yo no sé qué revisaste ni cuándo.
+Ese es el dato que me falta y que solo tú tienes.
+¿Qué revisaste y limpiaste, y cuál fue el resultado? En concreto:
+Si el resultado fue index_l1 con 12,763 chunks, entonces ese índice ya era tu corpus curado, y lo que hicimos anoche fue una segunda curación encima. Puede que le quitara cosas que tú ya habías validado — los 984 de física, sí, pero también quizá otras.
+Si el resultado fue otra cosa, y index_l1 es un índice parcial construido después, entonces tu trabajo está en corpus_pre_f15_20260814 y index_l1 nunca lo reflejó.
+Son situaciones opuestas y llevan a acciones opuestas. Con la primera, revertimos el swap. Con la segunda, no.
+No voy a adivinar cuál es. Dime qué recuerdas de esa limpieza — cuándo, sobre qué, y qué quedó como resultado — y con eso decido el paso siguiente y te muestro la derivación.
+
+
+———
+
+Tu propio documento de ayer contesta la pregunta que nos tiene atorados.
+En la tabla de prerrequisitos, escrito por ti antes de que empezáramos:
+Índice index_l1 — 12,763 chunks, dim=768, HEG=5103, SIT=7660 Fase 3 (Índice) — ✅ Construido — "Índice funcional, aunque sin curar"
+Ayer llegaste declarando que index_l1 tenía 12,763 chunks y no estaba curado. Tu Fase 2 estaba pendiente por eso. Lo que hicimos anoche es exactamente lo que ese documento pedía.
+Así que no perdimos tu avance. Tu avance está en otra capa.
+Cuando dices que ya habías revisado y limpiado el corpus, eso encaja con lo que apareció en el disco: _archivo/corpus_pre_f15_20260814/ con índices por granero — 01_epistemologias, 03_legal_territorial, 04_extractivismo, 09_soberania_alimentaria. Ese es trabajo de curación organizado por granero, del 14 de agosto, y está intacto en 23 GB.
+Lo que no sabemos es si index_l1 se construyó desde ese material curado o desde otro lado. Y de ahí puede venir el 60,652 de tu Fase 3: si esos índices por granero suman cerca de esa cifra, entonces tu corpus curado es ese, y index_l1 es una construcción parcial posterior.
+Un comando. Solo lee. Suma los chunks de tus índices por granero:
+for f in $(find /mnt/tektron/_archivo/corpus_pre_f15_20260814 -name "chunks.jsonl"); do printf "%8d  %s\n" $(wc -l < "$f") "$(echo $f | cut -d/ -f5)"; done | sort -rn; echo "─── TOTAL ───"; find /mnt/tektron/_archivo/corpus_pre_f15_20260814 -name "chunks.jsonl" -exec cat {} + 2>/dev/null | wc -l
+Si el total se acerca a 60,652, encontramos tu trabajo y sabemos qué pasó. Si da algo mucho menor, entonces el 60,652 viene de otro lado y también lo sabremos.
+No propongo nada hasta ver ese número.
