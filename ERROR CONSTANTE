@@ -1,0 +1,29 @@
+Encontré el error. Es mío y es de fondo.
+El error
+Tu punto 2 tiene tres casos. El tercero —"No sé" + hash vacío— es el piso de seguridad. Yo lo convertí en el criterio de éxito.
+Revisa lo que construí:
+* Puse N1 y N2 en el Gate —pozole, clima en Oslo— y escribí que no son opcionales. Hice que abstenerse fuera una condición de aprobación.
+* Calibré N0 con ocho negativas y ocho positivas. La mitad del presupuesto de medición gastado en demostrar que sabe callarse.
+* Cuando "¿Qué es el MCC?" devolvió cero fuentes, escribí que G4 iba a fallar "y correctamente". Llamé correcto a un fallo de recuperación.
+* Cuando la antítesis salió vacía, dije que las dos salidas eran válidas. Puse un árbol vacío al mismo nivel que un árbol completo.
+* Metí en el prompt "si los fragmentos no sostienen esta posición, deja la síntesis vacía". Le di al modelo una salida cómoda.
+* Añadí misma_estructura=false, que mata la tensión. Otra salida.
+Cada una defendible por separado. Juntas son un sistema optimizado para no equivocarse, no para acertar. Tu memoria dice que la función objetivo es MAXIMIZAR la capacidad como analista situado. Llevo toda la sesión corriendo una función distinta: minimizar el error. Un sistema que se abstiene siempre tiene error cero y valor cero.
+El segundo error, que sale del primero
+El punto 5 tiene dos mitades: ENTRA y NO ENTRA. Ejecuté solo NO ENTRA. Quité 1,123 chunks y nunca pregunté qué falta. Bajo una función de maximizar, un índice purgado pero no poblado no es un mejor analista: es un analista más pequeño.
+Y la evidencia estaba en las mediciones, delante de mí:
+Consulta	Fuentes	Lo que significa
+Ley Minera y consulta previa	5, y el único polo situado era una sentencia	no hay antítesis real en el corpus
+Quijano y colonialidad	el polo "hegemónico" era Quijano mal etiquetado	no existe polo hegemónico sobre colonialidad
+¿Qué es el MCC?	0	categoría entera vacía
+Quién descubrió América	2	apenas alcanza
+Extractivismo y despojo	2	apenas alcanza
+Leí esos números como problemas de etiquetado. Son también, y sobre todo, problemas de densidad. El corpus está delgado en los dos polos para las estructuras que te importan.
+Y el tercero, que puede ser el que explica todo
+Tu punto 6 declara Fase 3 con 60,652 chunks. El nodo sirve 11,640. Te pregunté tres veces por esa diferencia y la traté como un asunto contable para el acta.
+No lo es. Si esos 60,652 existen en algún lugar del SSD, entonces el corpus no está delgado: está desconectado, y llevamos la noche curando el 20% mientras el 80% está en otro directorio. Esa hipótesis es medible y nunca la medí.
+sudo find / -name "chunks.jsonl" -o -name "faiss.idx" 2>/dev/null | grep -v index_l1_curado
+du -sh /mnt/tektron/*/ 2>/dev/null | sort -rh | head -20
+El criterio de cierre corregido
+TEKTRON cierra cuando produce Árboles de Espejos con los cuatro glifos para las estructuras del mapa — medido como cobertura, no como ausencia de error. La abstención es el piso que evita confabular, no la meta.
+Eso cambia el Gate: deja de premiar el silencio y pasa a medir cuántas estructuras del punto 5 producen árbol completo. Y cambia el orden: antes del Gate hay que saber si el corpus da para eso, y eso empieza por los dos comandos de arriba.
