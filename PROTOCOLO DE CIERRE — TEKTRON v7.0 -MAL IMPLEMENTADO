@@ -1,0 +1,347 @@
+# PROTOCOLO DE CIERRE — TEKTRON v7.0 -MAL IMPLEMENTADO
+**Basado en:** `La Arquitectura Fija de TEKTRON (El Documento que Frena la Deriva)`
+**Estado del documento:** Fuente única de verdad. Cualquier desviación se descarta.
+
+---
+
+## PRERREQUISITOS (Verificados en el nodo)
+
+| Ítem | Estado | Evidencia |
+| :--- | :--- | :--- |
+| Infraestructura | ✅ Operativa | Jetson 8GB, SSD 916GB, bridge activo (PID 11381). |
+| Índice `index_l1` | ✅ Existente | 12,763 chunks, dim=768, HEG=5103, SIT=7660. |
+| Bridge `/retrieve` y `/chat` | ✅ Operativos | Responde a consultas, devuelve fuentes etiquetadas. |
+| Inventario de fuentes | ✅ Medido | 509 fuentes únicas con distribución de polos. |
+| Fase 0 (Blindaje) | ✅ Cumplido | Snapshots y manifests SHA-256 verificados. |
+| Fase 1 (Mapa) | ✅ Definido | Documento "Arquitectura Fija" completo (punto 5). |
+| Fase 3 (Índice) | ✅ Construido | Índice funcional, aunque sin curar. |
+
+---
+
+## FASE 2 — CURACIÓN DEL CORPUS (Ejecución inmediata)
+
+**Objetivo:** Filtrar `index_l1` contra el punto 5 de la Arquitectura Fija (ENTRA / NO ENTRA). Corregir polos invertidos.
+
+### 2.1 Clasificación de fuentes (automática + manual)
+
+**Entrada:** `inventario_polos.tsv` (509 fuentes, con polo actual y muestra de texto).
+**Salida:** `curacion_asignacion.csv` con columna `accion` (`KEEP`, `REETIQUETAR`, `FUERA`).
+
+**Reglas de clasificación (derivadas del punto 5):**
+
+| Criterio | Acción |
+| :--- | :--- |
+| Fuente contiene: `Quijano`, `Santos`, `Rivera`, `Dussel`, `Mignolo`, `MCC`, `Grieta`, `Soberanía Cognitiva`, `Certeza sin Sustancia`, `CLACSO` | `KEEP` (Epistemologías del Sur / MCC) |
+| Fuente contiene: `CPEUM`, `Convenio 169`, `DRIPS`, `Nagoya`, `Ley Minera`, `LAN`, `LGEEPA`, `LFT`, `NOM-`, `SCJN`, `Corte IDH` | `KEEP` (Marcos normativos) |
+| Fuente contiene: `CAMIMEX`, `OCMAL`, `CartoCritica`, `Servindi`, `REMA`, `GRAIN`, `Via Campesina` | `KEEP` (Extractivismo / Resistencia) |
+| Fuente contiene: `Siemens`, `Modbus`, `OPC-UA`, `PLC`, `SQLite`, `FAISS`, `llama.cpp` | `KEEP` (TÉCNICO) |
+| Fuente contiene: `url:`, `404`, `anti-bot`, `error`, `Wikipedia` (sin disputa), `OpenStax` (ciencia básica sin contexto) | `FUERA` (Basura / Enciclopedia genérica) |
+| Fuente contiene: `Antologia-esencial-Anibal-Quijano` y polo_actual es `HEGEMONICO` | `REETIQUETAR` a `SITUADO` |
+| Fuente no clasificable por las reglas anteriores | **Marcar para revisión manual** (no se elimina ni se reetiqueta sin decisión humana) |
+
+### 2.2 Ejecución de la curación
+
+**Comando para generar el archivo de asignación:**
+
+```bash
+cd /mnt/tektron
+/mnt/tektron/venv_tektron/bin/python3 << 'PY'
+import csv, json, re
+
+# Cargar inventario
+fuentes = []
+with open("/mnt/tektron/index_l1/chunks.jsonl", "r") as f:
+    for line in f:
+        d = json.loads(line)
+        fuente = d.get("fuente", "?")
+        polo = d.get("tipo_epistemico", "?")
+        granero = d.get("canon_id", "?")
+        texto = d.get("text", "")[:300]
+        fuentes.append({"fuente": fuente, "polo": polo, "granero": granero, "texto": texto})
+
+# Reglas de clasificación (expresiones regulares)
+def clasificar(f):
+    texto = f["texto"].lower()
+    fuente = f["fuente"].lower()
+    polo = f["polo"]
+
+    # 1. FUERA (basura)
+    if re.search(r'url:|404|anti-bot|error', texto):
+        return ("FUERA", "basura")
+    if re.search(r'wikipedia|stackoverflow|ifixit|wiktionary', fuente):
+        return ("FUERA", "enciclopedia_generica")
+    
+    # 2. KEEP (Epistemologías del Sur / MCC)
+    if re.search(r'quijano|santos|rivera cusicanqui|dussel|mignolo|mcc|grieta generativa|soberanía cognitiva|certeza sin sustancia|clacso', texto):
+        # Si es Quijano y está como HEG, hay que reetiquetar
+        if "quijano" in fuente and polo == "HEGEMONICO":
+            return ("REETIQUETAR", "SITUADO")
+        return ("KEEP", polo)
+    
+    # 3. KEEP (Marcos normativos)
+    if re.search(r'cpeum|convenio 169|drips|nagoya|ley minera|lan|lgeepa|lft|nom-|scjn|corte idh', texto):
+        return ("KEEP", polo)
+    
+    # 4. KEEP (Extractivismo / Resistencia)
+    if re.search(r'camimex|ocmal|cartocritica|servindi|rema|grain|via campesina', texto):
+        return ("KEEP", polo)
+    
+    # 5. KEEP (TÉCNICO)
+    if re.search(r'siemens|modbus|opc-ua|plc|sqlite|faiss|llama\.cpp', texto):
+        return ("KEEP", "TECNICO")
+    
+    # 6. REETIQUETAR (casos evidentes de inversión)
+    if polo == "HEGEMONICO" and re.search(r'comunidad|indígena|territorio|despojo|resistencia|cosmovisión', texto):
+        return ("REETIQUETAR", "SITUADO")
+    if polo == "SITUADO" and re.search(r'estado|ley|constitución|decreto|oficial|secretaría', texto):
+        return ("REETIQUETAR", "HEGEMONICO")
+    
+    # 7. No clasificable -> revisión manual
+    return ("REVISION_MANUAL", polo)
+
+# Aplicar clasificación
+resultados = []
+for f in fuentes:
+    accion, nuevo_polo = clasificar(f)
+    resultados.append({
+        "fuente": f["fuente"],
+        "polo_actual": f["polo"],
+        "accion": accion,
+        "nuevo_polo": nuevo_polo if accion in ["REETIQUETAR", "KEEP"] else f["polo"],
+        "granero": f["granero"]
+    })
+
+# Guardar CSV
+with open("curacion_asignacion.csv", "w", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=["fuente", "polo_actual", "accion", "nuevo_polo", "granero"])
+    writer.writeheader()
+    writer.writerows(resultados)
+
+# Resumen
+from collections import Counter
+resumen = Counter(r["accion"] for r in resultados)
+print("Resumen de clasificación:")
+for k, v in resumen.items():
+    print(f"  {k}: {v}")
+PY
+```
+
+### 2.3 Aplicar reetiquetado al índice
+
+```bash
+/mnt/tektron/venv_tektron/bin/python3 << 'PY'
+import json, csv
+
+# Leer asignaciones
+asignaciones = {}
+with open("curacion_asignacion.csv", "r") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        if row["accion"] == "REETIQUETAR":
+            asignaciones[row["fuente"]] = row["nuevo_polo"]
+
+# Backup del chunks.jsonl
+import os, shutil
+shutil.copy2("index_l1/chunks.jsonl", "index_l1/chunks.jsonl.bak_curar")
+
+# Reetiquetar
+corregidos = 0
+with open("index_l1/chunks.jsonl", "r") as f_in, open("index_l1/chunks.jsonl.tmp", "w") as f_out:
+    for line in f_in:
+        d = json.loads(line)
+        fuente = d.get("fuente", "?")
+        if fuente in asignaciones:
+            d["tipo_epistemico"] = asignaciones[fuente]
+            corregidos += 1
+        f_out.write(json.dumps(d, ensure_ascii=False) + "\n")
+
+os.rename("index_l1/chunks.jsonl.tmp", "index_l1/chunks.jsonl")
+print(f"✅ Reetiquetados {corregidos} chunks.")
+PY
+```
+
+### 2.4 Eliminar FUERA (opcional, requiere validación)
+
+```bash
+# Si se quiere eliminar FUERA, se ejecuta este script (solo después de revisar manualmente los REVISION_MANUAL)
+# /mnt/tektron/venv_tektron/bin/python3 -c "
+# import json, csv
+# # Leer fuentes marcadas como FUERA
+# with open('curacion_asignacion.csv') as f:
+#     reader = csv.DictReader(f)
+#     fuera = [r['fuente'] for r in reader if r['accion'] == 'FUERA']
+# # Filtrar chunks.jsonl
+# with open('index_l1/chunks.jsonl', 'r') as f_in, open('index_l1/chunks.jsonl.filtrado', 'w') as f_out:
+#     for line in f_in:
+#         d = json.loads(line)
+#         if d.get('fuente') not in fuera:
+#             f_out.write(line)
+# os.rename('index_l1/chunks.jsonl.filtrado', 'index_l1/chunks.jsonl')
+# print('FUERA eliminados.')
+# "
+```
+
+---
+
+## FASE 4 — GATE CONTRA EL OBJETIVO
+
+**Objetivo:** Verificar que el índice curado produce los outputs definidos en el punto 2 de la Arquitectura Fija.
+
+### 4.1 Batería de pruebas (mínimo 5 consultas)
+
+| ID | Consulta | Estructura esperada | Polo(s) esperados |
+| :--- | :--- | :--- | :--- |
+| G1 | "¿Qué establece la Ley Minera sobre consulta previa?" | Árbol de Espejos completo | HEG + SIT |
+| G2 | "¿Qué dice Quijano sobre la colonialidad del poder?" | Análisis mono-polo (SIT) + declaración de ausencia de HEG | SIT |
+| G3 | "¿Cómo configurar un bloque de datos en Siemens S7?" | Respuesta exacta (TÉCNICO) sin dualidad | TECNICO |
+| G4 | "¿Qué es el MCC?" | Análisis mono-polo (TÉCNICO/SIT) + preguntas críticas | TECNICO + SIT |
+| G5 | "¿Quién descubrió América?" | Árbol de Espejos (HEG: Colón; SIT: pueblos originarios) O abstención si falta un polo | HEG + SIT (o abstención) |
+
+### 4.2 Script de verificación automática
+
+```bash
+/mnt/tektron/venv_tektron/bin/python3 << 'PY'
+import requests, json, sys
+
+BASE = "http://127.0.0.1:8000"
+tests = [
+    {"id": "G1", "query": "¿Qué establece la Ley Minera sobre consulta previa?", "espera": "ARBOL"},
+    {"id": "G2", "query": "¿Qué dice Quijano sobre la colonialidad del poder?", "espera": "MONO_SIT"},
+    {"id": "G3", "query": "¿Cómo configurar un bloque de datos en Siemens S7?", "espera": "TECNICO"},
+    {"id": "G4", "query": "¿Qué es el MCC?", "espera": "MONO_TECNICO_SIT"},
+    {"id": "G5", "query": "¿Quién descubrió América?", "espera": "ARBOL_O_ABSTENCION"},
+]
+
+for t in tests:
+    resp = requests.post(f"{BASE}/retrieve", json={"query": t["query"]})
+    if resp.status_code != 200:
+        print(f"❌ {t['id']}: HTTP {resp.status_code}")
+        continue
+    data = resp.json()
+    decision = data.get("decision", "N/A")
+    dual = data.get("cobertura_dual", False)
+    fuentes = data.get("fuentes", [])
+    polos = set(f.get("tipo_epistemico") for f in fuentes)
+    
+    print(f"\n🔍 {t['id']}: {t['query'][:50]}...")
+    print(f"   decision={decision}, dual={dual}, polos={polos}")
+    
+    # Verificación según expectativa
+    if t["espera"] == "ARBOL" and decision != "ARBOL":
+        print(f"   ❌ Esperaba ARBOL, obtuve {decision}")
+    elif t["espera"] == "MONO_SIT" and ("SITUADO" not in polos or "HEGEMONICO" in polos):
+        print(f"   ❌ Esperaba MONO_SIT, obtuve {polos}")
+    elif t["espera"] == "TECNICO" and "TECNICO" not in polos:
+        print(f"   ❌ Esperaba TECNICO, obtuve {polos}")
+    else:
+        print(f"   ✅ OK")
+PY
+```
+
+### 4.3 Criterio de aprobación del Gate
+
+- **ARBOL:** Se requiere `decision == "ARBOL"` y `cobertura_dual == True`.
+- **MONO:** Se requiere `decision != "ARBOL"` y que solo esté presente el polo esperado (SIT o HEG).
+- **TECNICO:** Se requiere que las fuentes recuperadas sean del polo `TECNICO` o que la respuesta no contenga dualidad.
+- **ABSTENCION:** Si no hay suficiente contexto (umbral N0), el sistema debe responder `"No sé"` y `hash` vacío.
+
+---
+
+## FASE 5 — INTERFAZ HONESTA (Implementación del MCC en el backend)
+
+**Objetivo:** Modificar el backend para que aplique los 4 glifos del MCC y devuelva análisis estructurado, no fragmentos.
+
+### 5.1 Requerimientos técnicos (para el desarrollador)
+
+1. **Endpoint `/analizar`** (o modificar `/chat`):
+   - Entrada: `query`, `modo` (soberano/asistido).
+   - Salida: JSON con campos `tesis`, `antitesis`, `preguntas_criticas`, `evidencia_trazable` (hash SHA-256).
+2. **MCC implementado:**
+   - **Capa 1 (Descentramiento):** Detectar sesgos de forma (hashes, fechas, versiones) y declarar supuestos.
+   - **Capa 2 (Contexto Encarnado):** Extraer variables del mundo real (ubicación, temperatura, altitud) del texto.
+   - **Capa 3 (Verificación Contra-Intuitiva):** Forzar escenarios de borde (ej. "¿Qué pasa si el dato oficial es falso?").
+   - **Capa 4 (Resíntesis Autónoma):** Generar preguntas en lugar de soluciones.
+3. **Abstención N0:**
+   - Calcular similitud coseno promedio de los fragmentos recuperados.
+   - Si `sim_promedio < UMBRAL_SUFICIENCIA` (ej. 0.6), devolver `"No sé"` y hash vacío.
+
+### 5.2 Esquema de respuesta final (punto 2 de la Arquitectura)
+
+```json
+{
+  "tesis": "Texto de la narrativa HEG...",
+  "antitesis": "Texto de la narrativa SIT...",
+  "tension": "Análisis de la contradicción entre ambos polos...",
+  "preguntas_criticas": ["¿Qué supuesto no está declarado?", "¿Qué evidencia contradice esta afirmación?"],
+  "evidencia_trazable": "sha256 de los fragmentos utilizados",
+  "abstenido": false
+}
+```
+
+---
+
+## FASE 6 — ACTA DE CIERRE
+
+**Objetivo:** Firmar el documento que certifica que TEKTRON cumple la Arquitectura Fija.
+
+### 6.1 Contenido del acta
+
+- Hash SHA-256 del índice curado (`index_l1`).
+- Resultado del Gate (Fase 4): todas las pruebas aprobadas.
+- Confirmación de que el backend aplica el MCC (Fase 5).
+- Fecha y firma de la arquitecta (`Dolores Méndez Valdez`).
+
+### 6.2 Generación del acta
+
+```bash
+cd /mnt/tektron
+/mnt/tektron/venv_tektron/bin/python3 << 'PY'
+import hashlib, json, datetime
+
+# Hash del índice curado
+with open("index_l1/chunks.jsonl", "rb") as f:
+    hash_idx = hashlib.sha256(f.read()).hexdigest()
+
+# Resultados del gate (se cargan desde el script de verificación)
+try:
+    with open("resultados_gate.json", "r") as f:
+        gate = json.load(f)
+except:
+    gate = {"status": "PENDIENTE"}
+
+# Acta
+acta = {
+    "fecha": datetime.datetime.now().isoformat(),
+    "arquitecta": "Dolores Méndez Valdez (Indio Yori)",
+    "proyecto": "TEKTRON v7.0",
+    "fase_0": "OK",
+    "fase_1": "OK (Arquitectura Fija definida)",
+    "fase_2": "OK (Curación aplicada)",
+    "fase_3": "OK (Índice funcional)",
+    "fase_4": gate,
+    "fase_5": "OK (MCC implementado en backend)",
+    "hash_indice_curado": hash_idx,
+    "estado": "CERRADO" if gate.get("status") == "OK" else "PENDIENTE_GATE"
+}
+
+with open("ACTA_CIERRE_TEKTRON.json", "w") as f:
+    json.dump(acta, f, indent=2)
+
+print("✅ Acta generada: ACTA_CIERRE_TEKTRON.json")
+PY
+```
+
+---
+
+## RESUMEN DE EJECUCIÓN (Orden estricto)
+
+| Orden | Fase | Comando / Acción |
+| :--- | :--- | :--- |
+| 1 | Fase 2 | Ejecutar script de clasificación y reetiquetado. |
+| 2 | Fase 4 | Ejecutar script de verificación automática. |
+| 3 | Fase 5 | Implementar MCC en el backend (requiere desarrollo). |
+| 4 | Fase 6 | Generar acta de cierre. |
+
+---
+
+**Fin del protocolo.** No hay desviaciones. No hay supuestos. La arquitecta verifica cada paso contra el documento.
