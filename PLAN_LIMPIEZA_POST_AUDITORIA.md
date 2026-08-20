@@ -116,9 +116,33 @@ En Jetson: descargar PDF oficiales a p.ej. `corpus/Corpus_Tektron_F12/00_Core/ra
 3. Mover regla_a/regla_c *_dup1* → cuarentena (tras spot-check 10 archivos)
 4. Curar index_l1: eliminar fuentes contaminadas (lista C)
 5. Rebuild faiss+bm25 desde chunks filtrados
-6. Indexar PDFs MCC CLACSO → L1
+6. Indexar PDFs MCC **desde Zenodo** (no asumir CLACSO) → L1
 7. Probes: MCC / certeza sin sustancia / grieta generativa
 8. Gate v8
+```
+
+Descarga Zenodo (ejemplo, en Jetson):
+
+```bash
+mkdir -p /mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo
+cd /mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo
+# MCC
+curl -L -o mcc_soberania_cognitiva.pdf \
+  "https://zenodo.org/records/17728016/files/El%20M%C3%A9todo%20de%20Calibraci%C3%B3n%20Contextual%20como%20Pr%C3%A1ctica%20de%20Soberan%C3%ADa%20Cognitiva.pdf?download=1"
+# Certeza sin sustancia (ajustar nombre de archivo si Zenodo usa otro)
+curl -L -o certeza_sin_sustancia.pdf \
+  "https://zenodo.org/api/records/19932561/files"
+# Mejor: abrir el DOI en el navegador y copiar el link exacto del PDF, o:
+# curl -LJ -o certeza_sin_sustancia.pdf https://doi.org/10.5281/zenodo.19932561
+```
+
+(Los nombres de archivo en Zenodo varían; si `curl` falla, desde la iMac descarga el PDF del record y `scp` a la Jetson.)
+
+Localizar copias ya en disco (evaluación CLACSO, no publicación):
+
+```bash
+find /mnt/tektron -iname '*Certeza*sin*sustancia*' -o -iname '*Calibraci*n*Contextual*' 2>/dev/null \
+  | grep -vE 'venv|site-packages'
 ```
 
 ---
