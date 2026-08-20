@@ -10,7 +10,7 @@ Contexto TEKTRON 2026-08-19:
 Uso en Jetson:
   /mnt/tektron/venv_tektron/bin/python3 /mnt/tektron/workspace/tektron_rebuild_faiss_from_chunks.py
 
-Objetivo: alinear faiss.idx con chunks.jsonl (dim 768 MiniLM) para que
+Objetivo: alinear faiss.idx con chunks.jsonl (dim alineada al modelo ST (default MiniLM-L12-v2 = 384)) para que
 los probes MCC / Árboles de Espejos usen el andamiaje recién indexado.
 """
 from __future__ import annotations
@@ -111,6 +111,14 @@ def main() -> None:
         print("DRY-RUN: no write")
         return
 
+    device = (args.device or "cpu").strip().lower()
+    if device not in {"cpu", "cuda"}:
+        device = "cpu"
+    # Debe ir ANTES de importar torch/sentence_transformers
+    if device == "cpu":
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+        os.environ["TEKTRON_EMBED_DEVICE"] = "cpu"
+
     try:
         import faiss  # type: ignore
         import numpy as np
@@ -130,28 +138,15 @@ def main() -> None:
             shutil.copy2(p, bak_dir / name)
     print(f"backup → {bak_dir}")
 
-    # Jetson: si llama/bridge ya usan la GPU, SentenceTransformer(cuda) revienta
-    # (NvMap OOM / NVML assert). Preferir CPU salvo --device cuda explícito.
-    device = (args.device or "cpu").strip().lower()
-    if device not in {"cpu", "cuda"}:
-        device = "cpu"
-    if device == "cuda":
-        # aún así, permitir abortar a CPU vía env
-        if os.environ.get("CUDA_VISIBLE_DEVICES") == "":
-            device = "cpu"
     print(f"cargando modelo en device={device}…")
-    # Ocultar GPU al proceso si pedimos CPU (evita .to(cuda) automático)
-    if device == "cpu":
-        os.environ["CUDA_VISIBLE_DEVICES"] = ""
     model = SentenceTransformer(args.model, device=device)
-    print("embedding…")
+    print("embedding… (12k chunks en CPU puede tardar; no cancelar)")
     emb = model.encode(
         texts,
         batch_size=args.batch_size,
         show_progress_bar=True,
         normalize_embeddings=True,
         convert_to_numpy=True,
-        device=device,
     )
     emb = np.asarray(emb, dtype="float32")
     if emb.ndim != 2 or emb.shape[0] != len(rows):

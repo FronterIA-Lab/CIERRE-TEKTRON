@@ -26,32 +26,28 @@ Sin rebuild denso, `/retrieve` puede **no** devolver el andamiaje MCC aunque el 
 
 `arbol_de_espejos` = INDEX_GAP en corpus: es **salida** del sistema (README), no un paper; no bloquea si MCC ya tiene hits.
 
-## Siguiente comando (iMac → Jetson)
+faiss OK ntotal=12273 dim=384 → …  
+SYNC OK: faiss.ntotal == len(chunks.jsonl)
+
+**Atención:** el índice vivo anterior reportaba **dim=768**; este rebuild usó
+`paraphrase-multilingual-MiniLM-L12-v2` → **dim=384**.  
+Si el bridge embebe consultas en 768, `/retrieve` fallará hasta alinear modelo.
 
 ```bash
-cd ~/Downloads/CIERRE-TEKTRON
-git pull
-scp tektron_rebuild_faiss_from_chunks.py \
-  tektron@192.168.100.84:/mnt/tektron/workspace/
-
-# opcional: ver desfase
-ssh tektron@192.168.100.84 \
-  '/mnt/tektron/venv_tektron/bin/python3 /mnt/tektron/workspace/tektron_rebuild_faiss_from_chunks.py --dry-run'
-
-# rebuild completo (puede tardar en Jetson)
-ssh tektron@192.168.100.84 \
-  '/mnt/tektron/venv_tektron/bin/python3 /mnt/tektron/workspace/tektron_rebuild_faiss_from_chunks.py'
+cd ~/Downloads/CIERRE-TEKTRON && git pull
+scp tektron_probe_mcc_retrieve.sh tektron@192.168.100.84:/mnt/tektron/workspace/
+ssh tektron@192.168.100.84 'bash /mnt/tektron/workspace/tektron_probe_mcc_retrieve.sh'
 ```
 
-Luego verificar retrieve:
+Si hay error de dimensión, rebuild con el modelo 768 que use el bridge, p. ej.:
 
 ```bash
 ssh tektron@192.168.100.84 \
-  'curl -sS -X POST http://127.0.0.1:8000/retrieve -H "Content-Type: application/json" \
-   -d "{\"query\":\"¿Qué es el MCC?\"}" | head -c 2000'
+  'CUDA_VISIBLE_DEVICES= /mnt/tektron/venv_tektron/bin/python3 \
+   /mnt/tektron/workspace/tektron_rebuild_faiss_from_chunks.py --device cpu \
+   --model sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
 ```
-
-Esperado: fragmentos de `zenodo_17728016` / `zenodo_21500800`, no abstención vacía.
+(Confirmar el nombre exacto con el grep del probe.)
 
 ## Después del sync FAISS
 
