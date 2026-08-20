@@ -71,7 +71,8 @@ def main() -> None:
         "--model",
         default=os.environ.get(
             "TEKTRON_EMBED_MODEL",
-            "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+            # Debe coincidir con retrieve_l1.py MODEL_EMBED (servicio vivo)
+            "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
         ),
     )
     ap.add_argument("--batch-size", type=int, default=16)

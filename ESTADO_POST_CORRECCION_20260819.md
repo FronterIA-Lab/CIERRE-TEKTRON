@@ -12,10 +12,11 @@
 | Probes texto MCC | OK (grieta, certeza, núcleo Zenodo) |
 | Rebuild FAISS (CPU) | **SYNC OK** `ntotal=12273` **dim=384** |
 
-## Atención: dimensión
+## Atención: dimensión — RESUELTO el diagnóstico
 
-Índice anterior: **dim=768**. Rebuild con MiniLM-L12-v2: **dim=384**.  
-Hay que confirmar que el bridge embebe en 384; si usa 768, retrieve rompe.
+- Índice previo / bridge vivo (`retrieve_l1.py`): **mpnet-base-v2 → dim 768**
+- Rebuild equivocado: MiniLM-L12-v2 → dim 384  
+- Acción: rebuild FAISS otra vez con mpnet (CPU).
 
 ## Siguiente
 

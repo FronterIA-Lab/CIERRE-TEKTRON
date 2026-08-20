@@ -33,29 +33,33 @@ grep -RIn -E 'SentenceTransformer|embed_model|MiniLM|mpnet|e5-|768|384' \
   | head -40 || true
 
 echo "=== retrieve MCC ==="
-curl -sS -m 120 -X POST "http://127.0.0.1:8000/retrieve" \
+TMP=$(mktemp)
+trap 'rm -f "$TMP"' EXIT
+code=$(curl -sS -m 120 -o "$TMP" -w "%{http_code}" -X POST "http://127.0.0.1:8000/retrieve" \
   -H "Content-Type: application/json" \
-  -d '{"query":"¿Qué es el MCC?"}' \
-  | "$PY" - <<'PY'
+  -d '{"query":"¿Qué es el MCC?"}' || echo "curl_fail")
+echo "http_code=$code"
+"$PY" - "$TMP" <<'PY'
 import sys, json
-raw=sys.stdin.read()
+from pathlib import Path
+raw = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
 print(raw[:2500])
 try:
-    d=json.loads(raw)
-except Exception:
-    sys.exit(0)
-# best-effort shape
-for key in ("results","hits","chunks","documents","items"):
+    d = json.loads(raw)
+except Exception as e:
+    print("json_parse_fail", e)
+    raise SystemExit(0)
+for key in ("results", "hits", "chunks", "documents", "items"):
     if isinstance(d, dict) and key in d:
-        xs=d[key]
+        xs = d[key]
         print(f"\n--- {key} n={len(xs) if hasattr(xs,'__len__') else '?'} ---")
-        for i,x in enumerate(list(xs)[:5]):
+        for i, x in enumerate(list(xs)[:5]):
             if isinstance(x, dict):
-                fuente=x.get("fuente") or x.get("source") or x.get("doc_id") or ""
-                text=(x.get("text") or x.get("contenido") or x.get("chunk") or "")[:200]
+                fuente = x.get("fuente") or x.get("source") or x.get("doc_id") or ""
+                text = (x.get("text") or x.get("contenido") or x.get("chunk") or "")[:220]
                 print(f"[{i}] fuente={fuente}")
-                print(text.replace("\n"," ")[:200])
+                print(text.replace("\n", " ")[:220])
             else:
-                print(f"[{i}]", str(x)[:200])
+                print(f"[{i}]", str(x)[:220])
         break
 PY
