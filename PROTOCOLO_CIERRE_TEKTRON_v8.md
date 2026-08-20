@@ -8,12 +8,13 @@
 
 ## Principios no negociables
 
-1. **N0 es piso, no meta.** Abstenerse no suma puntos de cierre.
-2. **Poblar antes de purgar.** NO ENTRA solo después de medir densidad dual por ancla ENTRA.
-3. **INDEX_GAP ≠ N0.** Concepto ENTRA con 0 hits es fallo de corpus/índice.
-4. **Conectividad primero.** No hay Gate ni Acta mientras exista delta no explicado entre chunks reclamados y chunks servidos, o GB huérfanos ENTRA.
-5. **Sin síntesis.** Tensión HEG↔SIT; MCC pregunta, no resuelve.
-6. **Scores por canal normalizados.** Prohibido umbral global sobre BM25 crudo mezclado.
+1. **Corpus antes que Gate.** Inventario total del disco (fuentes + índices + Wikipedia/general) es Fase −1. Sin `$INV/10_CORPUS_INVENTORY_REPORT.json` no hay cierre. Playbook: `INVENTARIO_CORPUS_JETSON.md`.
+2. **N0 es piso, no meta.** Abstenerse no suma puntos de cierre.
+3. **Poblar / reconectar antes de purgar.** Si el corpus nunca fue tocado pero el índice está mal, se reindexa el puente; no se borra la fuente.
+4. **INDEX_GAP ≠ N0.** Concepto ENTRA con 0 hits es fallo de corpus/índice.
+5. **Wikipedia / conocimiento general ≠ andamiaje dual.** Enciclopedia genérica (ZIM, wiki-rag, dumps) vive en namespace `GENERAL` separado; **no** se mezcla en `index_l1` HEG/SIT (punto 5 Arquitectura: sin estructura de disputa = NO ENTRA a L1).
+6. **Sin síntesis.** Tensión HEG↔SIT; MCC pregunta, no resuelve.
+7. **Scores por canal normalizados.** Prohibido umbral global sobre BM25 crudo mezclado.
 
 ---
 
@@ -33,9 +34,48 @@ TEKTRON está cerrado solo si **todas** las condiciones valen:
 
 ---
 
-## FASE 0 — Inventario de verdad (BLOQUEANTE)
+## FASE −1 — Inventario total del corpus (BLOQUEANTE)
 
-**Objetivo:** saber qué hay en disco vs qué sirve el bridge. Sin interpretación.
+**Objetivo:** revisar la Jetson entera — documentos, ubicaciones, estado, generaciones de índice, Wikipedia/general — **antes** de curar o cerrar.
+
+Ejecutar el playbook completo:
+
+```bash
+# En la Jetson:
+less /ruta/al/repo/INVENTARIO_CORPUS_JETSON.md
+# o copiar el archivo a /mnt/tektron/workspace/ y seguir secciones 0–10
+```
+
+Salidas mínimas obligatorias en `$INV/`:
+
+| Archivo | Pregunta que responde |
+|---------|----------------------|
+| `01_du_top.txt` | Qué pesa |
+| `02_docs_mtime.tsv` / `02_corpus_docs.tsv` / `02_clacso_docs.tsv` | Qué documentos hay y dónde |
+| `03_wiki_files.txt` + `03_origin_refs.txt` | ¿Existe la Wikipedia/GitHub de conocimiento general? |
+| `04_chunks_inventory.txt` + `04_meta_dump.txt` | Todas las generaciones de índice |
+| `05_*` | ¿Corpus desconectado del índice vivo? |
+| `06_generaciones.txt` | pre_f15 vs l1 vs unificado |
+| `09_probes_*.txt` | Qué falta descargar vs qué solo falta reindexar |
+| `10_CORPUS_INVENTORY_REPORT.json` | Hipótesis + siguiente acción |
+
+**Regla de decisión post-inventario:**
+
+| Caso | Acción |
+|------|--------|
+| PDF en disco, 0 en índice | **Reindexar** (corpus intacto; puente roto) |
+| 0 en disco, 0 en índice, probe ENTRA | **Descargar / agregar** |
+| Wikipedia/ZIM/wiki-rag encontrada | Namespace `GENERAL` aparte; no mezclar en L1 |
+| Wikipedia chunks dentro de `index_l1` | Contaminación → sacar a GENERAL o FUERA |
+| Índice unificado mal construido, corpus intacto | No tocar corpus; reconstruir índice desde fuentes |
+
+Solo con `$INV/10_CORPUS_INVENTORY_REPORT.json` firmado se pasa a Fase 0 / 0b.
+
+---
+
+## FASE 0 — Inventario de verdad de índices (BLOQUEANTE)
+
+**Objetivo:** saber qué hay en disco vs qué sirve el bridge. Sin interpretación. Completar/cruzar con Fase −1.
 
 ### 0.1 Contar índices
 
@@ -291,12 +331,13 @@ Firma solo si C1–C7.
 ## Orden estricto de ejecución
 
 ```
-0 Inventario → 0b Poblar/Reconectar → 1 Probes MCC
-→ 2 Curación equilibrada → 3 Índice+manifest
+−1 Inventario TOTAL Jetson (INVENTARIO_CORPUS_JETSON.md)
+→ 0 Índices / conectividad → 0b Reindexar o descargar ENTRA
+→ 1 Probes MCC → 2 Curación equilibrada → 3 Índice+manifest
 → 4 Gate capacidad → 5 Interfaz MCC → 6 Acta
 ```
 
-No saltar. No Gate antes de conectividad y probes. No Acta con cifras no medidas.
+No saltar. No Gate antes de inventario de corpus. No Acta con cifras no medidas.
 
 ---
 
