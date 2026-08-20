@@ -27,6 +27,7 @@ ESTA INVESTIGACIÓN NOS DEBE DAR UN CORPUS IDEAL DEFINIDO YA QUE TEKTRON TIENE V
     * Leyes, tratados, constituciones, marcos normativos.
     * Epistemologías del Sur (Quijano, Santos, Rivera Cusicanqui, Dussel, Mignolo).
     * Metodología MCC, conceptos de "Grieta Generativa", "Certeza sin Sustancia", "Soberanía Cognitiva".
+    * **Corpus autoritativo propio:** 16 papers publicados en Zenodo (todos relacionados con TEKTRON); fuente canónica Zenodo, no CLACSO.
     * Casos documentados de extractivismo y resistencia territorial.
     * Normas técnicas (NOMs, manuales de Siemens/Modbus) como conocimiento TÉCNICO.
 * NO ENTRA (FUERA):

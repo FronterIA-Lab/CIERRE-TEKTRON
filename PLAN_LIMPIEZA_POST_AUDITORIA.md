@@ -90,21 +90,23 @@ Acción: filtrar esas `fuente` de `chunks.jsonl` y reconstruir FAISS/BM25 (como 
 | `index_unificado` 60 652 | Auditar después; no swap |
 | Snapshots `_snapshots/` | Rollback |
 
-### E — INDEXAR desde Zenodo (fuente autoritativa MCC)
+### E — INDEXAR desde Zenodo (fuente autoritativa — 16 papers)
 
-Los papers propios **no están publicados en CLACSO**. La membrecía CLACSO ≠ depósito. Fuente canónica: **Zenodo**.
+La arquitecta tiene **16 papers publicados en Zenodo**, todos relacionados con TEKTRON (MCC, soberanía cognitiva, certeza sin sustancia, arquitectura de borde, etc.).
 
-La carpeta `_clacso_archivo/TEKTRON_EVALUACION_CLACSO/` es material de *evaluación/corpora* en disco; puede contener copias, pero **no** sustituye Zenodo.
+- **No** son publicaciones CLACSO (membrecía ≠ depósito).
+- `_clacso_archivo/TEKTRON_EVALUACION_CLACSO/` puede tener copias de evaluación; **Zenodo es canónico**.
+- Los 16 deben entrar al andamiaje (`00_Core` / polo SIT-MCC o el polo que corresponda) e indexarse en L1; hoy varios conceptos MCC dan INDEX_GAP (0 hits).
 
-Registros públicos a incorporar al andamiaje (`00_Core` / polo SIT-MCC):
+Registros ya identificados (subconjunto; completar los 16 desde la cuenta Zenodo):
 
-| Obra | DOI Zenodo |
-|------|------------|
+| Obra | DOI |
+|------|-----|
 | Método de Calibración Contextual… | https://doi.org/10.5281/zenodo.17728016 |
 | Certeza sin sustancia… | https://doi.org/10.5281/zenodo.19932561 |
-| TEKTRON v4.0 (reporte + artefacto) | https://doi.org/10.5281/zenodo.20404028 |
+| TEKTRON v4.0 | https://doi.org/10.5281/zenodo.20404028 |
 
-En Jetson: descargar PDF oficiales a p.ej. `corpus/Corpus_Tektron_F12/00_Core/raw/zenodo/` y **luego** indexar a L1. Si ya hay copias en `_clacso_archivo/.../corpora`, comparar hash con Zenodo; si coincide, se puede indexar esa copia; si no, preferir Zenodo.
+**Pendiente de cierre:** inventario completo de los 16 DOIs → `corpus/.../00_Core/raw/zenodo/` → indexar L1 → probes MCC en verde.
 
 ---
 
