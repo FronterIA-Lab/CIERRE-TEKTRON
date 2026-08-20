@@ -89,78 +89,94 @@ find /mnt/tektron/_clacso_archivo -maxdepth 3 -type d 2>/dev/null | sort | tee "
 
 ---
 
-## 3. Buscar la “Wikipedia / conocimiento general” (GitHub / ZIM / dumps)
+## 3. Buscar LLM Wiki (Karpathy) — referencia, no dump de Wikipedia
 
-Candidatos típicos: Kiwix `.zim`, dump `enwiki`/`eswiki`, `wiki-rag` (RoyRin/HF FAISS), `zim-llm`, carpetas `wikipedia`, `wiki`, `kiwix`, `conocimiento_general`.
+Lo que se descargó es el **patrón** [llm-wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) (gist de Andrej Karpathy): idea file para que un agente construya una wiki markdown persistente entre `raw/` y las queries. **No es** un corpus Wikipedia/ZIM. Rol en TEKTRON: **referencia de arquitectura** (capa compilada), no fuente ENTRA del andamiaje dual salvo que se haya implementado wiki propia y se decida indexarla.
 
-```bash
-# Por nombre de ruta
-find /mnt/tektron /home /opt /var /media /mnt -iname '*wiki*' 2>/dev/null \
-  | grep -vE 'venv|site-packages|__pycache__|\.git/' \
-  | head -200 | tee "$INV/03_paths_wiki.txt"
-
-find /mnt/tektron /home /opt /var /media /mnt -iname '*kiwix*' 2>/dev/null \
-  | head -100 | tee -a "$INV/03_paths_wiki.txt"
-
-find /mnt/tektron /home /opt /var /media /mnt -iname '*zim*' 2>/dev/null \
-  | grep -vE 'venv|site-packages' | head -100 | tee -a "$INV/03_paths_wiki.txt"
-```
+### 3A. ¿Dónde está el documento?
 
 ```bash
-# Archivos ZIM / dumps Wikipedia (el “tipo Wikipedia” offline)
+# Por nombre / fragmentos del gist
 find /mnt/tektron /home /opt /var /media /mnt -type f \( \
-  -iname "*.zim" -o -iname "*wiki*.xml*" -o -iname "*enwiki*" -o -iname "*eswiki*" \
-  -o -iname "*wikipedia*" -o -iname "*pageviews*" \
-\) 2>/dev/null | tee "$INV/03_wiki_files.txt"
+  -iname '*llm-wiki*' -o -iname '*llm_wiki*' -o -iname '*karpathy*' \
+  -o -iname 'wiki.md' -o -iname '*idea*wiki*' \
+\) 2>/dev/null | grep -vE 'venv|site-packages|__pycache__|\.git/objects' \
+  | tee "$INV/03_llmwiki_by_name.txt"
 
-# Si hay ZIM, tamaño
-xargs -a "$INV/03_wiki_files.txt" -r ls -lh 2>/dev/null | tee "$INV/03_wiki_files_ls.txt"
-```
+# Por contenido característico del gist
+grep -RIl -E 'persistent, compounding artifact|Obsidian is the IDE|Vannevar Bush|The wiki is a persistent' \
+  /mnt/tektron /home/tektron /opt 2>/dev/null \
+  | grep -vE 'venv|site-packages' | head -50 | tee "$INV/03_llmwiki_by_content.txt"
 
-```bash
-# Índices FAISS / HF tipo wiki-rag (conocimiento general preconstruido)
-find /mnt/tektron /home /opt /var /media /mnt -type d \( \
-  -iname '*wiki*rag*' -o -iname '*wiki_index*' -o -iname '*wiki-rag*' \
-  -o -iname '*conocimiento*' -o -iname '*general*know*' -o -iname '*hf*wiki*' \
-\) 2>/dev/null | tee "$INV/03_wiki_index_dirs.txt"
+grep -RIl -E 'karpathy/442a6bf555914893e9891c11519de94f|gist\.githubusercontent\.com/karpathy' \
+  /mnt/tektron /home/tektron 2>/dev/null \
+  | grep -vE 'venv|site-packages' | tee -a "$INV/03_llmwiki_by_content.txt"
 
-find /mnt/tektron -type f \( -iname '*wiki*.idx' -o -iname '*wiki*.faiss' \
-  -o -iname 'faiss_unificado*' -o -iname '*minilm*' \) 2>/dev/null \
-  | tee "$INV/03_wiki_faiss.txt"
-```
-
-```bash
-# Rastrear origen GitHub / HuggingFace en el disco
-grep -RIl -E 'github\.com|huggingface\.co|kiwix|wikimedia|wiki-rag|zim-llm|karpathy|llm-wiki' \
-  /mnt/tektron --include='*.md' --include='*.txt' --include='*.json' --include='*.py' \
-  --include='*.yml' --include='*.yaml' --include='*.sh' --include='*.log' \
-  2>/dev/null | grep -vE 'venv|_archivo/venv|site-packages' \
-  | head -80 | tee "$INV/03_origin_refs.txt"
-
-# Historial de descargas en shell
-grep -hE 'wiki|kiwix|zim|huggingface|git clone|wget|aria2|hf_hub' \
+# Descargas típicas (curl/wget del gist)
+grep -hE 'karpathy|llm-wiki|442a6bf|gist\.github' \
   /home/tektron/.bash_history /root/.bash_history 2>/dev/null \
-  | sort -u | tee "$INV/03_shell_history_downloads.txt"
+  | sort -u | tee "$INV/03_llmwiki_shell_history.txt"
+```
+
+### 3B. ¿Se implementó? (señales de wiki viva, no solo el idea file)
+
+Una implementación del patrón suele tener: `raw/` + `wiki/` + `index.md` + `log.md` + schema (`CLAUDE.md` / `AGENTS.md` / `SCHEMA.md`).
+
+```bash
+# Directorios que parecen wiki compilada
+find /mnt/tektron /home/tektron -type d \( -iname 'wiki' -o -iname 'raw' \) 2>/dev/null \
+  | grep -vE 'venv|site-packages|\.git|node_modules' | tee "$INV/03_llmwiki_dirs.txt"
+
+# Pares típicos: index.md + log.md juntos
+find /mnt/tektron /home/tektron -type f \( -name 'index.md' -o -name 'log.md' \) 2>/dev/null \
+  | grep -vE 'venv|site-packages|\.git' | tee "$INV/03_llmwiki_index_log.txt"
+
+# Schema del patrón
+find /mnt/tektron /home/tektron -type f \( \
+  -name 'CLAUDE.md' -o -name 'AGENTS.md' -o -name 'SCHEMA.md' \
+\) 2>/dev/null | grep -vE 'venv|node_modules|\.git' | tee "$INV/03_llmwiki_schema.txt"
+
+# ¿Hay páginas entity/concept estilo llm-wiki?
+find /mnt/tektron /home/tektron -type d \( \
+  -iname 'entities' -o -iname 'concepts' -o -iname 'sources' -o -iname 'syntheses' \
+\) 2>/dev/null | grep -vE 'venv|site-packages|\.git' | tee "$INV/03_llmwiki_page_dirs.txt"
 ```
 
 ```bash
-# ¿Aparece Wikipedia DENTRO del índice vivo? (si sí, contaminó andamiaje)
-grep -ci -E 'wikipedia|wiktionary|wiki\.org' /mnt/tektron/index_l1/chunks.jsonl 2>/dev/null \
-  | tee "$INV/03_wiki_in_index_l1.txt"
-# Muestra de fuentes
-grep -i -E 'wikipedia|wiktionary' /mnt/tektron/index_l1/chunks.jsonl 2>/dev/null \
-  | /mnt/tektron/venv_tektron/bin/python3 -c '
-import sys,json
-from collections import Counter
-c=Counter()
-for line in sys.stdin:
-  try: d=json.loads(line); c[d.get("fuente","?")]+=1
-  except: pass
-for k,v in c.most_common(30): print(v, k)
-' | tee "$INV/03_wiki_fuentes_en_l1.txt"
+# Veredicto automático (solo lectura)
+/mnt/tektron/venv_tektron/bin/python3 << 'PY' | tee "$INV/03_llmwiki_veredicto.txt"
+from pathlib import Path
+inv = Path("$INV")
+def lines(p):
+    f = inv/p
+    return f.read_text().splitlines() if f.exists() else []
+doc = lines("03_llmwiki_by_name.txt") + lines("03_llmwiki_by_content.txt")
+dirs = lines("03_llmwiki_dirs.txt")
+idx = lines("03_llmwiki_index_log.txt")
+schema = lines("03_llmwiki_schema.txt")
+print("documento_idea_file:", "SI" if doc else "NO_ENCONTRADO")
+for x in doc[:20]: print("  DOC", x)
+has_index = any(p.endswith("index.md") for p in idx)
+has_log = any(p.endswith("log.md") for p in idx)
+print("index.md:", "SI" if has_index else "NO")
+print("log.md:", "SI" if has_log else "NO")
+print("schema:", "SI" if schema else "NO")
+for x in schema[:10]: print("  SCHEMA", x)
+impl = has_index and has_log
+print("implementacion_probable:", "SI" if impl else "SOLO_REFERENCIA_O_AUSENTE")
+print("nota: si SOLO_REFERENCIA → guardar gist en docs/; no indexar en index_l1 como ENTRA")
+PY
 ```
 
-**Política TEKTRON (Arquitectura punto 5):** Wikipedia / enciclopedia genérica **sin estructura de disputa** es `NO ENTRA` al andamiaje `index_l1` (HEG/SIT). Si existe en disco, debe vivir como **capa separada** (`conocimiento_general/` o índice propio), no mezclada con Árboles. Encontrarla ≠ meterla en L1.
+**Cómo leer el veredicto**
+
+| Resultado | Significado |
+|-----------|-------------|
+| Documento SI, implementación NO | Solo referencia descargada; no hay wiki compilada |
+| Documento + `index.md`/`log.md`/`wiki/` | Hubo intento de implementación — inventariar esas páginas aparte |
+| Nada | No está en rutas buscadas; re-descargar el gist a `docs/referencia/` si quieres conservarlo |
+
+**Política:** el idea file **no entra** a `index_l1` como conocimiento dual. Si hay wiki markdown implementada sobre fuentes TEKTRON, esa capa puede ser andamiaje *compilado* (útil para MCC/conceptos) — distinta del RAG de chunks crudos — y se decide después del inventario, no mezclada a ciegas con FAISS.
 
 ---
 
