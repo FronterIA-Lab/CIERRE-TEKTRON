@@ -2,6 +2,15 @@
 # =============================================================================
 # TEKTRON — mirada MACRO de la Jetson + SSD (SOLO LECTURA)
 # =============================================================================
+# Host registrado: tektron@192.168.100.84
+# SSD / root:      /mnt/tektron
+#
+# Desde la iMac:
+#   scp ~/Downloads/tektron_macro_scan.sh tektron@192.168.100.84:/mnt/tektron/workspace/
+#   ssh tektron@192.168.100.84 'bash /mnt/tektron/workspace/tektron_macro_scan.sh'
+#   LATEST=$(ssh tektron@192.168.100.84 'ls -td /mnt/tektron/workspace/macro_* | head -1')
+#   scp "tektron@192.168.100.84:${LATEST}/MACRO_REPORT.txt" ~/Downloads/
+#
 # Uso en la Jetson:
 #   bash tektron_macro_scan.sh
 #   # o:

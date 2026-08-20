@@ -40,6 +40,23 @@ TEKTRON está cerrado solo si **todas** las condiciones valen:
 
 ### Arranque rápido (recomendado)
 
+**Host Jetson (LAN):** `tektron@192.168.100.84`  
+**Ruta SSD:** `/mnt/tektron`
+
+Desde la iMac (copiar script + ejecutar):
+
+```bash
+scp ~/Downloads/tektron_macro_scan.sh tektron@192.168.100.84:/mnt/tektron/workspace/ && \
+ssh tektron@192.168.100.84 'bash /mnt/tektron/workspace/tektron_macro_scan.sh'
+```
+
+Traer el reporte a la iMac:
+
+```bash
+LATEST=$(ssh tektron@192.168.100.84 'ls -td /mnt/tektron/workspace/macro_* | head -1')
+scp "tektron@192.168.100.84:${LATEST}/MACRO_REPORT.txt" ~/Downloads/
+```
+
 En la Jetson, copiar `tektron_macro_scan.sh` a `/mnt/tektron/workspace/` y ejecutar:
 
 ```bash
