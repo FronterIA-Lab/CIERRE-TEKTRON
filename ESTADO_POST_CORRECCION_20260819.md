@@ -12,6 +12,11 @@
 | `faiss_model` | paraphrase-multilingual-mpnet-base-v2 (= `retrieve_l1.py`) |
 | Probe `/retrieve` “¿Qué es el MCC?” | **ABSTENER** · `fuentes=[]` |
 
+## Diagnose (confirmado)
+
+- FAISS disco Top-8 incluye `zenodo_21500800` / `zenodo_17728016` (scores ~0.61–0.52).
+- `/retrieve` sigue ABSTENER → **bridge con FAISS viejo en RAM**.
+
 ## Lectura
 
 Disco OK. El bridge habla (`http 200`, `bridge=l1`) pero **no recupera** MCC.  
