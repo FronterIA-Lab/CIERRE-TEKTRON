@@ -90,34 +90,27 @@ Acción: filtrar esas `fuente` de `chunks.jsonl` y reconstruir FAISS/BM25 (como 
 | `index_unificado` 60 652 | Auditar después; no swap |
 | Snapshots `_snapshots/` | Rollback |
 
-### E — INDEXAR desde Zenodo (fuente autoritativa — 16 papers)
+### E — INDEXAR desde Zenodo (fuente autoritativa)
 
-Catálogo completo: **`ZENODO_CATALOGO_16.md`** + lista `zenodo_dois.txt`.
+Catálogo: **`ZENODO_CATALOGO_16.md`** + `zenodo_dois.txt`.
 
 - **No** son publicaciones CLACSO (membrecía ≠ depósito).
 - `_clacso_archivo/TEKTRON_EVALUACION_CLACSO/` puede tener copias de evaluación; **Zenodo es canónico**.
-- Los 16 deben entrar al andamiaje (`00_Core`) e indexarse en L1; hoy varios conceptos MCC dan INDEX_GAP (0 hits).
 
-| Obra (abreviado) | DOI |
-|------|-----|
-| Colonización de la Gramática… | https://doi.org/10.5281/zenodo.17587819 |
-| MANUAL SOBERANÍA COGNITIVA | https://doi.org/10.5281/zenodo.17705442 |
-| MCC como práctica… | https://doi.org/10.5281/zenodo.17728016 |
-| Código Fuente del Sexto Sol… | https://doi.org/10.5281/zenodo.18324469 |
-| IA de Borde / Tonalli… | https://doi.org/10.5281/zenodo.18492979 |
-| Geometría del Despojo… | https://doi.org/10.5281/zenodo.18529874 |
-| Auditoría BlackRock… | https://doi.org/10.5281/zenodo.18652576 |
-| TEKTRON IA de Borde… (v. nueva) | https://doi.org/10.5281/zenodo.18655577 |
-| Ofensiva del nombre / Anáhuac… | https://doi.org/10.5281/zenodo.18655897 |
-| Indio Yori… (solo .pages) | https://doi.org/10.5281/zenodo.18707186 |
-| Grieta Generativa… | https://doi.org/10.5281/zenodo.18800211 |
-| El fetiche y la herida… | https://doi.org/10.5281/zenodo.19639576 |
-| Certeza sin sustancia… | https://doi.org/10.5281/zenodo.19932561 |
-| TEKTRON v4.0 | https://doi.org/10.5281/zenodo.20404028 |
-| Grafo de la Aniquilación… | https://doi.org/10.5281/zenodo.21500777 |
-| MCC Protocolo Gramática Computacional | https://doi.org/10.5281/zenodo.21500800 |
+#### Núcleo MCC (2) — respaldan el método (prioridad L1)
 
-**Pendiente:** correr ingest → markdown → indexar L1 → probes MCC en verde.
+| Rol | DOI |
+|-----|-----|
+| MCC marco / praxis | https://doi.org/10.5281/zenodo.17728016 |
+| MCC protocolo operativo | https://doi.org/10.5281/zenodo.21500800 |
+
+Solo estos dos **definen** el MCC. Probes “¿Qué es el MCC?” deben anclarse aquí.
+
+#### Corpus TEKTRON relacionado (14)
+
+Grieta, certeza sin sustancia, v4, grafo, Tonalli, etc. — andamiaje / satélites; **no** sustituyen el núcleo MCC. Lista completa en `ZENODO_CATALOGO_16.md`.
+
+**Pendiente:** ingest núcleo MCC primero → markdown → L1 → probes; luego el resto.
 
 ---
 
