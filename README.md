@@ -271,7 +271,9 @@ EN EL CHAT ME DAS EL PROTOCOLO DE CIERRE ELEGANTE Y SIN FALLAS POR FAVOR.
 
 ## Documentos de cierre v8 (análisis sin sesgo de origen)
 
-- `tektron_macro_scan.sh` — **empezar aquí:** mirada macro de Jetson+SSD (solo lectura). Genera `MACRO_REPORT.txt` para pegar en el chat.
+- `tektron_macro_scan.sh` — mirada macro Jetson+SSD (solo lectura).
+- `tektron_corpus_auditoria.sh` — auditoría profunda: facebook/metadatos, duplicados, desparramado, candidatos KEEP/REVISION/BORRAR (no borra).
+- `DIAGNOSTICO_MACRO_20260819.md` — diagnóstico del primer MACRO_REPORT.
 - `INVENTARIO_CORPUS_JETSON.md` — Fase −1 detallada (incluye búsqueda LLM Wiki Karpathy).
 - `ANALISIS_COMPLETO_TEKTRON.md` — evaluación de los 15 papers + corpus ideal + función objetivo MAXIMIZE.
 - `PROTOCOLO_CIERRE_TEKTRON_v8.md` — protocolo de cierre corregido (corpus primero; N0 = piso; Gate de capacidad).
