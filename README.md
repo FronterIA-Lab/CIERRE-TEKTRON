@@ -266,3 +266,12 @@ CON UN ERROR HISTÓRICO QUE SE QUEDÓ EN UN AGENTE Y QUE TIENE CONTAMINADO TODO 
 
 
 EN EL CHAT ME DAS EL PROTOCOLO DE CIERRE ELEGANTE Y SIN FALLAS POR FAVOR. 
+
+---
+
+## Documentos de cierre v8 (análisis sin sesgo de origen)
+
+- `ANALISIS_COMPLETO_TEKTRON.md` — evaluación de los 15 papers + corpus ideal + función objetivo MAXIMIZE.
+- `PROTOCOLO_CIERRE_TEKTRON_v8.md` — protocolo de cierre corregido (N0 = piso; poblar antes de purgar; Gate de capacidad).
+
+El protocolo v7.0 queda como registro de implementación fallida (`PROTOCOLO DE CIERRE — TEKTRON v7.0 -MAL IMPLEMENTADO`).
