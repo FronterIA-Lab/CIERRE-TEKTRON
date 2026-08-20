@@ -31,16 +31,19 @@ Pendientes de archivo: BlackRock `18652576`, TEKTRON v4 `20404028`.
 No usar sync aislado como primer paso. Usar el script maestro:
 
 ```bash
-# 1) Copiar repo bundle a Jetson workspace
+# 1) Scripts
 scp tektron_correccion_cierre.sh tektron_indexar_andamiaje_l1.py \
-    -r corpus/andamiaje_propio \
     tektron@192.168.100.84:/mnt/tektron/workspace/
 
-# 2) Dry-run del plan
+# 2) Papers (flag -r ANTES de la carpeta; obligatorio en macOS)
+scp -r corpus/andamiaje_propio \
+    tektron@192.168.100.84:/mnt/tektron/workspace/
+
+# 3) Dry-run del plan
 ssh tektron@192.168.100.84 \
   'bash /mnt/tektron/workspace/tektron_correccion_cierre.sh --dry-run'
 
-# 3) Ejecutar (fases 1→5: cuarentena, curar L1, instalar 00_Core, indexar, probes)
+# 4) Ejecutar (fases 1→5)
 ssh tektron@192.168.100.84 \
   'bash /mnt/tektron/workspace/tektron_correccion_cierre.sh --fase all'
 ```

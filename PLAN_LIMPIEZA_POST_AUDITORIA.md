@@ -122,7 +122,8 @@ Pendientes de archivo: `18652576`, `20404028`.
 
 ```bash
 scp tektron_correccion_cierre.sh tektron_indexar_andamiaje_l1.py \
-    -r corpus/andamiaje_propio \
+    tektron@192.168.100.84:/mnt/tektron/workspace/
+scp -r corpus/andamiaje_propio \
     tektron@192.168.100.84:/mnt/tektron/workspace/
 
 ssh tektron@192.168.100.84 \

@@ -24,9 +24,11 @@
 #
 # Host: tektron@192.168.100.84 · ROOT=/mnt/tektron
 #
-# Desde iMac:
+# Desde iMac (flags scp ANTES de los archivos; macOS OpenSSH):
+#   cd ~/Downloads/CIERRE-TEKTRON
 #   scp tektron_correccion_cierre.sh tektron_indexar_andamiaje_l1.py \
-#       zenodo_dois.txt -r corpus/andamiaje_propio \
+#       tektron@192.168.100.84:/mnt/tektron/workspace/
+#   scp -r corpus/andamiaje_propio \
 #       tektron@192.168.100.84:/mnt/tektron/workspace/
 #   ssh tektron@192.168.100.84 \
 #     'bash /mnt/tektron/workspace/tektron_correccion_cierre.sh --dry-run'
@@ -56,7 +58,19 @@ command -v "$PY" >/dev/null 2>&1 || PY="$(command -v python3)"
 DRY=0
 FASE="all"
 HASTA=""
-ANDAMIAJE_SRC="${ANDAMIAJE_SRC:-$SCRIPT_DIR/corpus/andamiaje_propio}"
+ANDAMIAJE_SRC="${ANDAMIAJE_SRC:-}"
+# Resolver andamiaje: env, workspace/andamiaje_propio (scp -r), o repo clone
+if [[ -z "$ANDAMIAJE_SRC" ]]; then
+  for cand in \
+    "${SCRIPT_DIR}/andamiaje_propio" \
+    "${SCRIPT_DIR}/corpus/andamiaje_propio" \
+    "${ROOT}/workspace/andamiaje_propio" \
+    "${ROOT}/corpus/andamiaje_propio"
+  do
+    if [[ -d "$cand/zenodo" ]]; then ANDAMIAJE_SRC="$cand"; break; fi
+  done
+  ANDAMIAJE_SRC="${ANDAMIAJE_SRC:-$SCRIPT_DIR/andamiaje_propio}"
+fi
 
 usage() { sed -n '2,45p' "$0" | sed 's/^# \?//'; exit 0; }
 
@@ -281,7 +295,9 @@ if should_run 3; then
   assert_no_memoria_usuario "$CORE/raw/zenodo" "$CORE/markdown/zenodo"
   if [[ ! -d "$ANDAMIAJE_SRC/zenodo" ]]; then
     log "  ERROR: falta $ANDAMIAJE_SRC/zenodo"
-    log "  Copia antes: scp -r corpus/andamiaje_propio tektron@…:/mnt/tektron/workspace/"
+    log "  Desde iMac (en ~/Downloads/CIERRE-TEKTRON):"
+    log "    scp -r corpus/andamiaje_propio tektron@192.168.100.84:/mnt/tektron/workspace/"
+    log "  Debe quedar: /mnt/tektron/workspace/andamiaje_propio/zenodo/"
     exit 4
   fi
   run "mkdir -p '$CORE/raw/zenodo' '$CORE/markdown/zenodo'"
