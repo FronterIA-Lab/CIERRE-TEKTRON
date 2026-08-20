@@ -24,23 +24,55 @@ if [[ -n "${PID:-}" ]]; then
   sleep 2
 fi
 
-# si systemd puede sin password, úsalo
-if systemctl restart tektron-bridge.service 2>/dev/null; then
-  echo "OK: systemctl restart tektron-bridge.service"
-else
+# Preferir nohup: systemd a menudo "restart OK" vía polkit pero el unit
+# queda failed/inactive y :8000 no escucha.
+start_nohup() {
   echo "Arranque directo (nohup)…"
   nohup "$PY" -u "$APP" >>"$LOG" 2>&1 &
   echo "PID $!  log=$LOG"
+}
+
+if [[ "${TEKTRON_USE_SYSTEMD:-0}" == "1" ]] && systemctl restart tektron-bridge.service 2>/dev/null; then
+  echo "OK: systemctl restart tektron-bridge.service"
+else
+  start_nohup
 fi
 
-for i in 1 2 3 4 5 6 7 8 9 10; do
+LISTEN=0
+for i in 1 2 3 4 5 6 7 8 9 10 12 15 20; do
   sleep 1
   if ss -ltn 2>/dev/null | grep -q ':8000'; then
     echo "LISTEN :8000 OK (t=${i}s)"
+    LISTEN=1
     break
   fi
   echo "esperando :8000… ($i)"
 done
+
+if [[ "$LISTEN" != "1" ]]; then
+  echo "WARN: :8000 no escucha tras restart. Forzando nohup…"
+  # si systemd dejó un unit fallido, igual intentamos proceso directo
+  start_nohup
+  for i in 1 2 3 4 5 6 7 8 9 10 15 20 30; do
+    sleep 1
+    if ss -ltn 2>/dev/null | grep -q ':8000'; then
+      echo "LISTEN :8000 OK via nohup (t=${i}s)"
+      LISTEN=1
+      break
+    fi
+    echo "esperando :8000 (nohup)… ($i)"
+  done
+fi
+
+if [[ "$LISTEN" != "1" ]]; then
+  echo "FAIL: :8000 sigue abajo. Diagnóstico:"
+  systemctl status tektron-bridge.service --no-pager -l 2>/dev/null | head -40 || true
+  echo "---- tail log ----"
+  tail -n 80 "$LOG" 2>/dev/null || true
+  echo "---- journal ----"
+  journalctl -u tektron-bridge.service -n 40 --no-pager 2>/dev/null || true
+  exit 1
+fi
 
 echo "=== probe MCC ==="
 curl -sS -m 90 -X POST http://127.0.0.1:8000/retrieve \
