@@ -171,12 +171,29 @@ def main() -> None:
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
         except Exception:
             meta = {}
+    def _polo(r: dict) -> str:
+        s = str(r.get("tipo_epistemico") or r.get("polo") or "").strip().upper()
+        if s in ("SIT", "SITUADO", "SITUADA"):
+            return "SITUADO"
+        if s in ("HEG", "HEGEMONICO", "HEGEMÓNICO", "HEGEMONICA", "HEGEMÓNICA"):
+            return "HEGEMONICO"
+        if s in ("TEC", "TECNICO", "TÉCNICO", "TECH"):
+            return "TECNICO"
+        return s or "?"
+
+    from collections import Counter
+
+    pc = Counter(_polo(r) for r in rows)
     meta["n_chunks"] = len(rows)
+    meta["n_sit"] = int(pc.get("SITUADO", 0))
+    meta["n_heg"] = int(pc.get("HEGEMONICO", 0))
+    meta["n_tec"] = int(pc.get("TECNICO", 0))
     meta["faiss_ntotal"] = int(index.ntotal)
     meta["faiss_dim"] = int(index.d)
     meta["faiss_rebuild_utc"] = datetime.now(timezone.utc).isoformat()
     meta["faiss_model"] = args.model
     meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"meta polos: sit={meta['n_sit']} heg={meta['n_heg']} tec={meta['n_tec']}")
 
     # sanity
     idx2 = faiss.read_index(str(faiss_path))
