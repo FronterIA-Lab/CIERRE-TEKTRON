@@ -2,7 +2,9 @@
 
 Fuente canónica: **Zenodo** (no CLACSO). Autora: Dolores Méndez Valdez / FronterIA-Lab.
 
-**Estado 2026-08-20:** 15 PDFs propios integrados en `corpus/andamiaje_propio/` (PDF + markdown extraíble). **Sí forman parte del conocimiento ENTRA** de TEKTRON.
+**Estado 2026-08-20:** 15 PDFs + markdown en `corpus/andamiaje_propio/` → granero **`00_Core`** (Corpus Base / Andamiaje). Son pieza del sistema TEKTRON.
+
+Instalación vía **`tektron_correccion_cierre.sh`** (plan: cuarentena → curar L1 → 00_Core → indexar → probes), no como paso aislado.
 
 ## Núcleo MCC (2) — respaldan el método
 
@@ -48,10 +50,11 @@ corpus/andamiaje_propio/
 
 ## Sync Jetson + index
 
+Usar el script maestro (prioridad al plan completo):
+
 ```bash
-bash tektron_sync_andamiaje_jetson.sh
-# Destino: /mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo/
-# También copiar markdown/ → .../00_Core/markdown/zenodo/ si el pipeline F12 indexa MD
+bash tektron_correccion_cierre.sh --dry-run
+bash tektron_correccion_cierre.sh --fase all
 ```
 
 Prioridad L1: núcleo MCC → satélites → resto.

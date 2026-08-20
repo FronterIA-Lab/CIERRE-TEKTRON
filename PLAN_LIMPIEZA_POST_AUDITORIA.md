@@ -90,65 +90,49 @@ Acción: filtrar esas `fuente` de `chunks.jsonl` y reconstruir FAISS/BM25 (como 
 | `index_unificado` 60 652 | Auditar después; no swap |
 | Snapshots `_snapshots/` | Rollback |
 
-### E — INDEXAR andamiaje propio (Zenodo / papers de la arquitecta)
+### E — Andamiaje propio en Corpus Base (`00_Core`)
 
-**Sí ENTRA al conocimiento de TEKTRON** (corpus base / polo SIT), no es memoria de usuario.
+Los papers de la arquitecta **son** Corpus Base (Andamiaje), pieza 1 de TEKTRON: granero `00_Core` → `index_l1`.
 
-Lote local: `corpus/andamiaje_propio/` (15 PDFs + markdown extraído). Catálogo: `ZENODO_CATALOGO_16.md`.
+Lote: `corpus/andamiaje_propio/`. Catálogo: `ZENODO_CATALOGO_16.md`.
 
-#### Núcleo MCC (2) — prioridad L1
+| Prioridad | DOI | Rol |
+|-----------|-----|-----|
+| 1 | 17728016 | Núcleo MCC — marco |
+| 1 | 21500800 | Núcleo MCC — protocolo |
+| 2 | 19932561 / 18800211 | Satélites (certeza / grieta) |
+| 3 | resto + 18491987 | Andamiaje TEKTRON |
 
-| Rol | DOI |
-|-----|-----|
-| MCC marco / praxis | https://doi.org/10.5281/zenodo.17728016 |
-| MCC protocolo operativo | https://doi.org/10.5281/zenodo.21500800 |
-
-#### Satélites + corpus TEKTRON
-
-Incluye grieta, certeza, Neuroderechos (`18491987`), grafo, Tonalli, etc. Pendientes de archivo en este lote: BlackRock `18652576`, TEKTRON v4 `20404028`.
-
-**Sync Jetson:**
-
-```bash
-bash tektron_sync_andamiaje_jetson.sh
-# → /mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo/
-```
-
-Luego markdown → rebuild L1 → probes MCC.
+Pendientes de archivo: `18652576`, `20404028`.
 
 ---
 
-## Orden de ejecución recomendado
+## Orden de ejecución (no invertir)
 
 ```
-1. Crear cuarentena/
-2. Mover scrapes Cloudflare/404 + FastAPI + venvs viejos → cuarentena
-3. Mover regla_a/regla_c *_dup1* → cuarentena (tras spot-check 10 archivos)
-4. Curar index_l1: eliminar fuentes contaminadas (lista C)
-5. Rebuild faiss+bm25 desde chunks filtrados
-6. Zenodo ingest (script abajo) → raw/zenodo → markdown → L1
-7. Probes: MCC / certeza sin sustancia / grieta generativa
-8. Gate v8
+1. Cuarentena scrapes/dups/ruido
+2. Expulsar contaminación de index_l1 + rebuild
+3. Instalar papers en Corpus_Tektron_F12/00_Core
+4. Indexar andamiaje en index_l1 (MCC primero)
+5. Probes MCC / INDEX_GAP
+6. Gate v8 (capacidad)
 ```
 
-### Script a ejecutar (Jetson)
+### Script maestro
 
 ```bash
-# desde iMac
-scp ~/Downloads/tektron_zenodo_ingest.sh ~/Downloads/zenodo_dois.txt \
-  tektron@192.168.100.84:/mnt/tektron/workspace/
+scp tektron_correccion_cierre.sh tektron_indexar_andamiaje_l1.py \
+    -r corpus/andamiaje_propio \
+    tektron@192.168.100.84:/mnt/tektron/workspace/
 
-# inventario sin descargar
 ssh tektron@192.168.100.84 \
-  'bash /mnt/tektron/workspace/tektron_zenodo_ingest.sh --scan-only'
+  'bash /mnt/tektron/workspace/tektron_correccion_cierre.sh --dry-run'
 
-# descargar PDFs faltantes
 ssh tektron@192.168.100.84 \
-  'bash /mnt/tektron/workspace/tektron_zenodo_ingest.sh'
+  'bash /mnt/tektron/workspace/tektron_correccion_cierre.sh --fase all'
 ```
 
-Destino: `/mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo/<record_id>/`  
-Omite el `.tar.gz` de v4 (~1.1 GB) salvo `--with-artifacts`.
+`--fase 1` … `--fase 5` o `--hasta 3` para cortar. `--dry-run` no mueve ni indexa.
 ---
 
 ## Comandos de cuarentena (solo mv; reversibles)

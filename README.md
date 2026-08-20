@@ -26,12 +26,12 @@ ESTA INVESTIGACIÓN NOS DEBE DAR UN CORPUS IDEAL DEFINIDO YA QUE TEKTRON TIENE V
 * ENTRA (Andamiaje):
     * Leyes, tratados, constituciones, marcos normativos.
     * Epistemologías del Sur (Quijano, Santos, Rivera Cusicanqui, Dussel, Mignolo).
-    * Metodología MCC (núcleo Zenodo: [17728016](https://doi.org/10.5281/zenodo.17728016) marco + [21500800](https://doi.org/10.5281/zenodo.21500800) protocolo); conceptos satélite "Grieta Generativa", "Certeza sin Sustancia", "Soberanía Cognitiva".
-    * **Corpus autoritativo propio (ENTRA):** papers Zenodo de la arquitecta en `corpus/andamiaje_propio/` (15 PDFs + markdown; ver `ZENODO_CATALOGO_16.md`). Fuente canónica Zenodo, no CLACSO.
+    * Metodología MCC — núcleo del andamiaje: [17728016](https://doi.org/10.5281/zenodo.17728016) (marco) + [21500800](https://doi.org/10.5281/zenodo.21500800) (protocolo); satélites "Grieta Generativa", "Certeza sin Sustancia", "Soberanía Cognitiva".
+    * Papers propios de la arquitecta (Zenodo) en granero `00_Core` — son Corpus Base (pieza 1); repo: `corpus/andamiaje_propio/`; Jetson: `Corpus_Tektron_F12/00_Core/`. Catálogo: `ZENODO_CATALOGO_16.md`.
     * Casos documentados de extractivismo y resistencia territorial.
     * Normas técnicas (NOMs, manuales de Siemens/Modbus) como conocimiento TÉCNICO.
 * NO ENTRA (FUERA):
-    * Memoria del usuario (PDFs subidos, búsquedas web).
+    * Memoria del usuario (PDFs subidos en sesión, búsquedas web) — capa externa con límites propios; no se mezcla con andamiaje.
     * Basura de metadatos (cabeceras url:/title:, 404s).
     * Enciclopedias genéricas sin estructura de disputa.
     * Conocimiento no verificado (hash no validado).
@@ -274,10 +274,12 @@ EN EL CHAT ME DAS EL PROTOCOLO DE CIERRE ELEGANTE Y SIN FALLAS POR FAVOR.
 
 - `tektron_macro_scan.sh` — mirada macro Jetson+SSD (solo lectura).
 - `tektron_corpus_auditoria.sh` — auditoría profunda: facebook/metadatos, duplicados, desparramado, candidatos KEEP/REVISION/BORRAR (no borra).
-- `tektron_zenodo_ingest.sh` + `zenodo_dois.txt` — inventariar/descargar Zenodo a `00_Core/raw/zenodo/`.
-- `tektron_sync_andamiaje_jetson.sh` — copiar `corpus/andamiaje_propio/zenodo/` a la Jetson.
-- `corpus/andamiaje_propio/` — **15 papers propios** (PDF + markdown ENTRA).
-- `ZENODO_CATALOGO_16.md` — **núcleo MCC = 17728016 + 21500800**; satélites + corpus TEKTRON.
+- `tektron_correccion_cierre.sh` — **script maestro de corrección** (plan: cuarentena → curar L1 → instalar papers en 00_Core → indexar → probes). Prioridad al plan completo.
+- `tektron_indexar_andamiaje_l1.py` — indexa markdown de `00_Core` en `index_l1` (MCC primero).
+- `tektron_zenodo_ingest.sh` + `zenodo_dois.txt` — respaldo descarga desde Zenodo.
+- `tektron_sync_andamiaje_jetson.sh` — solo copia papers al SSD (usar vía fase 3 del script maestro).
+- `corpus/andamiaje_propio/` — papers del sistema (PDF + markdown) para granero `00_Core`.
+- `ZENODO_CATALOGO_16.md` — núcleo MCC = 17728016 + 21500800; resto andamiaje TEKTRON.
 - `DIAGNOSTICO_MACRO_20260819.md` — diagnóstico del primer MACRO_REPORT.
 - `INVENTARIO_CORPUS_JETSON.md` — Fase −1 detallada (incluye búsqueda LLM Wiki Karpathy).
 - `ANALISIS_COMPLETO_TEKTRON.md` — evaluación de los 15 papers + corpus ideal + función objetivo MAXIMIZE.

@@ -1,43 +1,48 @@
-# Andamiaje propio TEKTRON (papers de la arquitecta)
+# Andamiaje propio TEKTRON (granero 00_Core)
 
-**Sí: estos papers son conocimiento ENTRA del corpus base** (polo SIT / metodología), no memoria de usuario.
+Parte del **Corpus Base (Andamiaje)** — pieza 1 de la arquitectura fija.  
+Integran el sistema final: MCC, soberanía cognitiva, borde, conceptos satélite.
 
-Fuente de verdad: Zenodo + copias locales aquí. Destino operativo en Jetson:
+Destino en Jetson:
 
-`/mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo/`
+```
+/mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo/
+/mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/markdown/zenodo/
+→ index_l1
+```
 
-## Contenido (15 PDFs entregados 2026-08-20)
+## Contenido (15 PDFs + markdown)
 
-Ver `zenodo/MANIFEST.tsv` (SHA-256 por archivo).
+Ver `zenodo/MANIFEST.tsv`.
 
-### Núcleo MCC (2)
+### Núcleo MCC (definen el método)
 | DOI | Paper |
 |-----|-------|
 | 10.5281/zenodo.17728016 | El Método de Calibración Contextual… |
 | 10.5281/zenodo.21500800 | MCC — Protocolo… Gramática Computacional |
 
-### Satélites MCC (2)
-| DOI | Paper |
-|-----|-------|
-| 10.5281/zenodo.19932561 | Certeza sin sustancia |
-| 10.5281/zenodo.18800211 | La Grieta Generativa |
+### Satélites + andamiaje TEKTRON
+Grieta, certeza, Neuroderechos (`18491987`), grafo, Tonalli, etc.
 
-### Corpus TEKTRON (11 en este lote)
-Incluye **Neuroderechos** (`10.5281/zenodo.18491987`, no estaba en el catálogo previo de 16), Indio Yori en PDF, Colonización, Manual, Sexto Sol, IA de Borde, Geometría del Despojo, Anáhuac, Border IA, fetiche/herida, Grafo.
+Pendientes de archivo: BlackRock `18652576`, TEKTRON v4 `20404028`.
 
-### Aún no en este lote (sí en `zenodo_dois.txt`)
-- `10.5281/zenodo.18652576` — Auditoría BlackRock  
-- `10.5281/zenodo.20404028` — TEKTRON v4.0 (reporte)
+## Cómo instalar (prioridad: plan completo)
 
-## Sync a la Jetson
+No usar sync aislado como primer paso. Usar el script maestro:
 
 ```bash
-# desde la máquina donde esté el repo (o zip de corpus/andamiaje_propio)
-scp -r corpus/andamiaje_propio/zenodo \
-  tektron@192.168.100.84:/mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/
+# 1) Copiar repo bundle a Jetson workspace
+scp tektron_correccion_cierre.sh tektron_indexar_andamiaje_l1.py \
+    -r corpus/andamiaje_propio \
+    tektron@192.168.100.84:/mnt/tektron/workspace/
 
-# o script:
-bash tektron_sync_andamiaje_jetson.sh
+# 2) Dry-run del plan
+ssh tektron@192.168.100.84 \
+  'bash /mnt/tektron/workspace/tektron_correccion_cierre.sh --dry-run'
+
+# 3) Ejecutar (fases 1→5: cuarentena, curar L1, instalar 00_Core, indexar, probes)
+ssh tektron@192.168.100.84 \
+  'bash /mnt/tektron/workspace/tektron_correccion_cierre.sh --fase all'
 ```
 
-Luego: markdown → index L1 → probes MCC.
+Objetivo: maximizar Árboles de Espejos + MCC + SHA; N0 es piso.
