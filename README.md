@@ -274,6 +274,8 @@ EN EL CHAT ME DAS EL PROTOCOLO DE CIERRE ELEGANTE Y SIN FALLAS POR FAVOR.
 
 - `tektron_macro_scan.sh` — mirada macro Jetson+SSD (solo lectura).
 - `tektron_corpus_auditoria.sh` — auditoría profunda: facebook/metadatos, duplicados, desparramado, candidatos KEEP/REVISION/BORRAR (no borra).
+- `tektron_zenodo_ingest.sh` + `zenodo_dois.txt` — inventariar/descargar los **16 papers Zenodo** a `00_Core/raw/zenodo/` (canónico; no indexa L1 aún).
+- `ZENODO_CATALOGO_16.md` — tabla de los 16 DOIs (MCC, grieta, certeza, v4, grafo, etc.).
 - `DIAGNOSTICO_MACRO_20260819.md` — diagnóstico del primer MACRO_REPORT.
 - `INVENTARIO_CORPUS_JETSON.md` — Fase −1 detallada (incluye búsqueda LLM Wiki Karpathy).
 - `ANALISIS_COMPLETO_TEKTRON.md` — evaluación de los 15 papers + corpus ideal + función objetivo MAXIMIZE.
