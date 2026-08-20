@@ -1,0 +1,4 @@
+{
+  "name": "CIERRE-TEKTRON",
+  "install": "bash .cursor/install.sh"
+}

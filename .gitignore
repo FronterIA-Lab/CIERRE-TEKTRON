@@ -1,0 +1,13 @@
+# Python virtual environment used by the Cloud Agent / local dev setup
+.venv/
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Local synthetic index fixtures / scratch data used for testing the scripts
+/tmp_index_l1/
+sandbox_tektron/
+
+# Hugging Face / sentence-transformers model cache (downloaded at runtime)
+.cache/
