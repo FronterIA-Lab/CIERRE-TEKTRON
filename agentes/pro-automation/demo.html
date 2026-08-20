@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pro-Automation — Asistente de producción</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0e1512;
+      --paper: #e8efe8;
+      --steel: #1f3d32;
+      --accent: #c45c26;
+      --muted: #5c6b63;
+      --line: rgba(14, 21, 18, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Source Sans 3", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(196, 92, 38, 0.18), transparent 55%),
+        linear-gradient(160deg, #d5e0d6 0%, var(--paper) 45%, #cfd9d2 100%);
+    }
+    .shell {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+    .brand {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(2.8rem, 8vw, 4.2rem);
+      letter-spacing: 0.04em;
+      line-height: 0.95;
+      color: var(--steel);
+      margin: 0 0 0.35rem;
+    }
+    .tag {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 34rem;
+      margin: 0 0 1.75rem;
+    }
+    .panel {
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(6px);
+      padding: 1.25rem;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--steel);
+      margin-bottom: 0.5rem;
+    }
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      border: 1px solid var(--line);
+      background: #f7faf7;
+      padding: 0.85rem 1rem;
+      font: inherit;
+      resize: vertical;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 0.85rem;
+    }
+    button, .chip {
+      font: inherit;
+      cursor: pointer;
+      border: 1px solid var(--steel);
+      background: var(--steel);
+      color: #f3f7f4;
+      padding: 0.65rem 1.1rem;
+      font-weight: 600;
+    }
+    button.secondary {
+      background: transparent;
+      color: var(--steel);
+    }
+    .chip {
+      background: transparent;
+      color: var(--muted);
+      border-color: var(--line);
+      font-weight: 400;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.7rem;
+    }
+    #out {
+      margin-top: 1.5rem;
+      white-space: pre-wrap;
+      line-height: 1.45;
+      min-height: 8rem;
+    }
+    .note {
+      margin-top: 1.75rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      padding-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <h1 class="brand">Pro-Automation</h1>
+    <p class="tag">Asistente de producción para gerencia de piso. Marco OEE · paros · Lean · CAPEX de celdas. Sin inventar datos de tu planta.</p>
+
+    <div class="panel">
+      <label for="q">Pregunta del gerente</label>
+      <textarea id="q" placeholder="Ej. Tenemos OEE en 65% y no sé por dónde empezar…"></textarea>
+      <div class="row">
+        <button type="button" id="go">Analizar</button>
+        <button type="button" class="secondary" id="clear">Limpiar</button>
+      </div>
+      <div class="row" id="chips"></div>
+      <div id="out" aria-live="polite"></div>
+    </div>
+
+    <p class="note">
+      Demo local (conocimiento embebido). No conecta a TEKTRON ni a la Jetson.
+      Cuando existan KPIs reales de planta, se cargan como sesión — no como “verdad inventada”.
+    </p>
+  </div>
+  <script>
+    const PACK = {
+      oee: `OEE = Disponibilidad × Rendimiento × Calidad.
+Pide los tres factores, no solo el agregado. Ataca la mayor pérdida (Pareto).
+Mala señal: subir OEE bajando calidad o comparando plantas con criterios distintos.`,
+      paros: `Clasifica paros: avería, setup, falta de insumos, microparos.
+Usa MTBF/MTTR y % mantenimiento planificado. TPM = menos sorpresa, no solo más técnicos.
+Pregunta: top 3 códigos de paro de la semana + refacciones críticas.`,
+      lean: `Sin estándar en piso, automatizar congela el desorden.
+Pide ver 5S, VSM, SMED y tablero SQDCP con dueño y fecha.
+Kaizen pequeño > proyecto I4.0 sin baseline.`,
+      capex: `No empieces por el robot. Empieza por la pérdida medible.
+Checklist: baseline KPI → causa raíz → alternativas baratas → safety/OT → MES → entrenamiento → criterio de aceptación.
+Banderas rojas: sin baseline, bypass de safety, “I4.0” sin dueño de KPI.`,
+      mes: `ERP planifica; MES ejecuta; SCADA mira máquina; CMMS mantiene.
+El gerente define qué decisión del turno necesita un dato confiable.
+Un OEE mentiroso es peor que no tener OEE.`
+    };
+
+    const chips = [
+      ["¿Cómo descompongo un OEE del 65%?", "oee"],
+      ["Top paros y TPM: por dónde empiezo?", "paros"],
+      ["¿Automatizar esta celda tiene sentido?", "capex"],
+      ["Qué datos necesito del MES esta semana?", "mes"],
+    ];
+
+    const chipsEl = document.getElementById("chips");
+    chips.forEach(([label, key]) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.textContent = label;
+      b.onclick = () => { document.getElementById("q").value = label; run(key); };
+      chipsEl.appendChild(b);
+    });
+
+    function pickKey(q) {
+      const s = q.toLowerCase();
+      if (/oee|disponib|rendim|calidad/.test(s)) return "oee";
+      if (/paro|tpm|mtbf|aver|manten/.test(s)) return "paros";
+      if (/automat|robot|capex|celda|invers/.test(s)) return "capex";
+      if (/mes|erp|sap|dato/.test(s)) return "mes";
+      if (/lean|5s|smied|smed|kaizen/.test(s)) return "lean";
+      return "oee";
+    }
+
+    function run(forced) {
+      const q = document.getElementById("q").value.trim();
+      if (!q) return;
+      const key = forced || pickKey(q);
+      const out = `## Diagnóstico
+Trabajo con marco industrial estándar. No invento OEE/scrap/layout de Pro-Automation sin evidencia.
+
+## Marco (${key})
+${PACK[key]}
+
+## Datos que faltan de tu planta
+- OEE descompuesto (D×R×C) o top pérdidas
+- Códigos de paro / MTTR de las 3 fallas principales
+- Si es CAPEX: baseline + KPI de éxito + restricciones de safety
+
+## Siguiente paso
+1) Elige una línea/celda piloto
+2) Trae 1 semana de paros o export MES
+3) Priorizamos una sola pérdida medible
+
+_Pregunta:_ ${q}`;
+      document.getElementById("out").textContent = out;
+    }
+
+    document.getElementById("go").onclick = () => run();
+    document.getElementById("clear").onclick = () => {
+      document.getElementById("q").value = "";
+      document.getElementById("out").textContent = "";
+    };
+  </script>
+</body>
+</html>
