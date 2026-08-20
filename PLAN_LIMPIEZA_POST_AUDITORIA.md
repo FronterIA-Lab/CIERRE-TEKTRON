@@ -92,21 +92,32 @@ Acción: filtrar esas `fuente` de `chunks.jsonl` y reconstruir FAISS/BM25 (como 
 
 ### E — INDEXAR desde Zenodo (fuente autoritativa — 16 papers)
 
-La arquitecta tiene **16 papers publicados en Zenodo**, todos relacionados con TEKTRON (MCC, soberanía cognitiva, certeza sin sustancia, arquitectura de borde, etc.).
+Catálogo completo: **`ZENODO_CATALOGO_16.md`** + lista `zenodo_dois.txt`.
 
 - **No** son publicaciones CLACSO (membrecía ≠ depósito).
 - `_clacso_archivo/TEKTRON_EVALUACION_CLACSO/` puede tener copias de evaluación; **Zenodo es canónico**.
-- Los 16 deben entrar al andamiaje (`00_Core` / polo SIT-MCC o el polo que corresponda) e indexarse en L1; hoy varios conceptos MCC dan INDEX_GAP (0 hits).
+- Los 16 deben entrar al andamiaje (`00_Core`) e indexarse en L1; hoy varios conceptos MCC dan INDEX_GAP (0 hits).
 
-Registros ya identificados (subconjunto; completar los 16 desde la cuenta Zenodo):
-
-| Obra | DOI |
+| Obra (abreviado) | DOI |
 |------|-----|
-| Método de Calibración Contextual… | https://doi.org/10.5281/zenodo.17728016 |
+| Colonización de la Gramática… | https://doi.org/10.5281/zenodo.17587819 |
+| MANUAL SOBERANÍA COGNITIVA | https://doi.org/10.5281/zenodo.17705442 |
+| MCC como práctica… | https://doi.org/10.5281/zenodo.17728016 |
+| Código Fuente del Sexto Sol… | https://doi.org/10.5281/zenodo.18324469 |
+| IA de Borde / Tonalli… | https://doi.org/10.5281/zenodo.18492979 |
+| Geometría del Despojo… | https://doi.org/10.5281/zenodo.18529874 |
+| Auditoría BlackRock… | https://doi.org/10.5281/zenodo.18652576 |
+| TEKTRON IA de Borde… (v. nueva) | https://doi.org/10.5281/zenodo.18655577 |
+| Ofensiva del nombre / Anáhuac… | https://doi.org/10.5281/zenodo.18655897 |
+| Indio Yori… (solo .pages) | https://doi.org/10.5281/zenodo.18707186 |
+| Grieta Generativa… | https://doi.org/10.5281/zenodo.18800211 |
+| El fetiche y la herida… | https://doi.org/10.5281/zenodo.19639576 |
 | Certeza sin sustancia… | https://doi.org/10.5281/zenodo.19932561 |
 | TEKTRON v4.0 | https://doi.org/10.5281/zenodo.20404028 |
+| Grafo de la Aniquilación… | https://doi.org/10.5281/zenodo.21500777 |
+| MCC Protocolo Gramática Computacional | https://doi.org/10.5281/zenodo.21500800 |
 
-**Pendiente de cierre:** inventario completo de los 16 DOIs → `corpus/.../00_Core/raw/zenodo/` → indexar L1 → probes MCC en verde.
+**Pendiente:** correr ingest → markdown → indexar L1 → probes MCC en verde.
 
 ---
 
@@ -118,35 +129,29 @@ Registros ya identificados (subconjunto; completar los 16 desde la cuenta Zenodo
 3. Mover regla_a/regla_c *_dup1* → cuarentena (tras spot-check 10 archivos)
 4. Curar index_l1: eliminar fuentes contaminadas (lista C)
 5. Rebuild faiss+bm25 desde chunks filtrados
-6. Indexar PDFs MCC **desde Zenodo** (no asumir CLACSO) → L1
+6. Zenodo ingest (script abajo) → raw/zenodo → markdown → L1
 7. Probes: MCC / certeza sin sustancia / grieta generativa
 8. Gate v8
 ```
 
-Descarga Zenodo (ejemplo, en Jetson):
+### Script a ejecutar (Jetson)
 
 ```bash
-mkdir -p /mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo
-cd /mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo
-# MCC
-curl -L -o mcc_soberania_cognitiva.pdf \
-  "https://zenodo.org/records/17728016/files/El%20M%C3%A9todo%20de%20Calibraci%C3%B3n%20Contextual%20como%20Pr%C3%A1ctica%20de%20Soberan%C3%ADa%20Cognitiva.pdf?download=1"
-# Certeza sin sustancia (ajustar nombre de archivo si Zenodo usa otro)
-curl -L -o certeza_sin_sustancia.pdf \
-  "https://zenodo.org/api/records/19932561/files"
-# Mejor: abrir el DOI en el navegador y copiar el link exacto del PDF, o:
-# curl -LJ -o certeza_sin_sustancia.pdf https://doi.org/10.5281/zenodo.19932561
+# desde iMac
+scp ~/Downloads/tektron_zenodo_ingest.sh ~/Downloads/zenodo_dois.txt \
+  tektron@192.168.100.84:/mnt/tektron/workspace/
+
+# inventario sin descargar
+ssh tektron@192.168.100.84 \
+  'bash /mnt/tektron/workspace/tektron_zenodo_ingest.sh --scan-only'
+
+# descargar PDFs faltantes
+ssh tektron@192.168.100.84 \
+  'bash /mnt/tektron/workspace/tektron_zenodo_ingest.sh'
 ```
 
-(Los nombres de archivo en Zenodo varían; si `curl` falla, desde la iMac descarga el PDF del record y `scp` a la Jetson.)
-
-Localizar copias ya en disco (evaluación CLACSO, no publicación):
-
-```bash
-find /mnt/tektron -iname '*Certeza*sin*sustancia*' -o -iname '*Calibraci*n*Contextual*' 2>/dev/null \
-  | grep -vE 'venv|site-packages'
-```
-
+Destino: `/mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo/<record_id>/`  
+Omite el `.tar.gz` de v4 (~1.1 GB) salvo `--with-artifacts`.
 ---
 
 ## Comandos de cuarentena (solo mv; reversibles)

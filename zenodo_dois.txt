@@ -1,0 +1,25 @@
+# TEKTRON — 16 registros Zenodo autoritativos (Dolores Méndez Valdez)
+# Una línea = un DOI o solo el número de record. Líneas # son comentarios.
+# Editar este archivo si publicas más obras; luego re-ejecutar tektron_zenodo_ingest.sh
+#
+# Uso:
+#   bash tektron_zenodo_ingest.sh                 # inventariar + descargar PDFs faltantes
+#   bash tektron_zenodo_ingest.sh --scan-only     # solo inventario (sin descargar)
+#   bash tektron_zenodo_ingest.sh --with-artifacts  # también .tar.gz grandes (p.ej. código v4)
+
+10.5281/zenodo.17587819
+10.5281/zenodo.17705442
+10.5281/zenodo.17728016
+10.5281/zenodo.18324469
+10.5281/zenodo.18492979
+10.5281/zenodo.18529874
+10.5281/zenodo.18652576
+10.5281/zenodo.18655577
+10.5281/zenodo.18655897
+10.5281/zenodo.18707186
+10.5281/zenodo.18800211
+10.5281/zenodo.19639576
+10.5281/zenodo.19932561
+10.5281/zenodo.20404028
+10.5281/zenodo.21500777
+10.5281/zenodo.21500800
