@@ -465,8 +465,8 @@ PY
 
 ## 11. Orden operativo después del inventario
 
-1. Leer `$INV/10_CORPUS_INVENTORY_REPORT.json` + `05_*` (desconexión).
-2. Si Wikipedia/ZIM/wiki-rag aparece → moverla o indexarla en **namespace `GENERAL`**, nunca mezclar en `index_l1` dual.
+1. Leer `$INV/10_CORPUS_INVENTORY_REPORT.json` + `05_*` (desconexión) + `03_llmwiki_veredicto.txt`.
+2. Si llm-wiki es solo idea file → archivarlo en `docs/referencia/`; **no** indexar en L1. Si hay wiki implementada (`wiki/`+`index.md`+`log.md`) → inventariar esa capa aparte.
 3. Todo PATH>0 INDEX=0 ENTRA → cola de **reindexación** (el corpus no se toca; se reconstruye el puente).
 4. PATH=0 INDEX=0 en probes del mapa → cola de **descarga**.
 5. Solo entonces: curación FUERA, calibración N0, Gate v8.
@@ -478,10 +478,11 @@ PY
 ```bash
 cd /mnt/tektron && INV=/mnt/tektron/workspace/inventario_$(date +%Y%m%d) && mkdir -p "$INV" && \
 du -sh /mnt/tektron/*/ 2>/dev/null | sort -rh | tee "$INV/01_du_top.txt" && \
-find /mnt/tektron/corpus /mnt/tektron/_clacso_archivo -type f \( -iname "*.pdf" -o -iname "*.txt" -o -iname "*.md" -o -iname "*.epub" -o -iname "*.zim" \) -printf '%s\t%TY-%Tm-%Td\t%p\n' 2>/dev/null | tee "$INV/02_docs_mtime.tsv" && \
-find /mnt/tektron /home /opt -type f \( -iname "*.zim" -o -iname "*wikipedia*" -o -iname "*enwiki*" -o -iname "*eswiki*" -o -iname "*wiki*rag*" \) 2>/dev/null | tee "$INV/03_wiki_files.txt" && \
+find /mnt/tektron/corpus /mnt/tektron/_clacso_archivo -type f \( -iname "*.pdf" -o -iname "*.txt" -o -iname "*.md" -o -iname "*.epub" \) -printf '%s\t%TY-%Tm-%Td\t%p\n' 2>/dev/null | tee "$INV/02_docs_mtime.tsv" && \
+find /mnt/tektron /home /opt -type f \( -iname '*llm-wiki*' -o -iname '*karpathy*' -o -iname '*llm_wiki*' \) 2>/dev/null | grep -vE 'venv|site-packages' | tee "$INV/03_llmwiki_by_name.txt" && \
+grep -RIl -E 'persistent, compounding artifact|Obsidian is the IDE|karpathy/442a6bf' /mnt/tektron /home/tektron 2>/dev/null | grep -vE 'venv|site-packages' | head -50 | tee "$INV/03_llmwiki_by_content.txt" && \
 find /mnt/tektron -type f \( -name 'chunks.jsonl' -o -name 'faiss.idx' -o -name 'meta.json' -o -name '*unificado*' \) 2>/dev/null | grep -vE 'venv|site-packages' | sort | tee "$INV/04_all_indexes.txt" && \
-echo "INV listo en $INV — continuar con secciones 5-10 del playbook"
+echo "INV=$INV — seguir con 3B (implementación) y secciones 5-10"
 ```
 
-Luego ejecuta las secciones **5 → 10** del mismo archivo (prueba de desconexión, generaciones, probes, reporte).
+Luego ejecuta **3B** (¿se implementó?) y secciones **5 → 10** del playbook.
