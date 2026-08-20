@@ -34,17 +34,41 @@ def main() -> None:
                 rows.append(json.loads(line))
     print(f"jsonl n={len(rows)}")
 
-    pat = re.compile(r"mcc|calibraci[oó]n contextual|17728016|21500800", re.I)
-    hits = []
+    # "MCC-ish" suelto incluye falsos positivos (bibliografías, "MC)", etc.).
+    # Lo que importa para cierre: fuentes zenodo del método + FAISS Top-k.
+    CORE_MCC = ("zenodo_17728016", "zenodo_21500800")
+    RELATED = ("zenodo_18491987",)  # neuroderechos / praxis MCC
+    pat = re.compile(r"\bmcc\b|calibraci[oó]n contextual|17728016|21500800", re.I)
+    hits_core: list = []
+    hits_related: list = []
+    hits_noisy: list = []
     for i, r in enumerate(rows):
         text = str(r.get("text") or r.get("contenido") or "")
         fuente = str(r.get("fuente") or "")
-        if pat.search(text) or pat.search(fuente) or "zenodo_17728016" in fuente or "zenodo_21500800" in fuente:
-            hits.append((i, fuente, r.get("polo") or r.get("tipo_epistemico"), text[:120].replace("\n", " ")))
-    print(f"chunks MCC-ish en jsonl: {len(hits)}")
-    for i, fuente, polo, snip in hits[:8]:
+        polo = r.get("polo") or r.get("tipo_epistemico")
+        snip = text[:120].replace("\n", " ")
+        row = (i, fuente, polo, snip)
+        if any(c in fuente for c in CORE_MCC):
+            hits_core.append(row)
+        elif any(c in fuente for c in RELATED) or (
+            fuente.startswith("zenodo_") and pat.search(text)
+        ):
+            hits_related.append(row)
+        elif pat.search(text) or pat.search(fuente):
+            hits_noisy.append(row)
+    print(
+        f"chunks MCC: core={len(hits_core)} "
+        f"(17728016+21500800) related≈{len(hits_related)} "
+        f"ruido_regex={len(hits_noisy)}"
+    )
+    print("  --- sample CORE ---")
+    for i, fuente, polo, snip in hits_core[:6]:
         print(f"  [{i}] polo={polo} fuente={fuente}")
         print(f"       {snip}")
+    if not hits_core:
+        print("  ERROR: no hay chunks de zenodo_17728016 / zenodo_21500800")
+        sys.exit(2)
+    hits = hits_core  # para el check ABSTENER más abajo
 
     import faiss
     import numpy as np
