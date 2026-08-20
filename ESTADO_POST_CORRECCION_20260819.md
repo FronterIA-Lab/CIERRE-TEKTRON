@@ -1,28 +1,14 @@
-# Estado — restore (un solo paso)
+# Estado — bridge vivo (2026-08-20)
 
-Tres snapshots existen. Siguiente acción: **restaurar** el trío completo y levantar bridge.
-Sin Gate. Sin reconcile. Sin align-meta.
+## Hecho
+- Restore **completo** desde `index_l1_precuracion_20260819` (chunks + meta + faiss + **ids_sit/heg/tec.npy** + bm25).
+- `IndexL1 OK` · bridge PID activo · `LISTEN :8000`
+- Log: `chunks=12763 sit=8321 heg=4304` · mpnet-768
 
-## En Jetson — pegar esto
+## Esperado / pendiente
+- `/retrieve` “¿Qué es el MCC?” → `ABSTENER` `fuentes=[]`  
+  = INDEX_GAP en este snapshot (sin andamiaje). **No** es N0-éxito ni Gate.
 
-```bash
-cat > /mnt/tektron/workspace/tektron_restore_l1_y_bridge.sh << 'ENDOFFILE'
-PLACEHOLDER
-ENDOFFILE
-# (mejor: copiar el script del repo; ver comando abajo)
-```
-
-O desde iMac:
-```bash
-cd ~/CIERRE-TEKTRON && git pull
-scp tektron_restore_l1_y_bridge.sh tektron@192.168.100.84:/mnt/tektron/workspace/
-```
-
-En Jetson:
-```bash
-bash /mnt/tektron/workspace/tektron_restore_l1_y_bridge.sh
-```
-
-Prioridad de restore: `pre_correccion` (si tiene faiss) → sino `index_l1_precuracion_20260819`.
-
-Pega la salida del script. Con IndexL1 OK + :8000, el crash terminó; el andamiaje MCC se reincorpora en un segundo paso controlado.
+## Siguiente
+Reindexar andamiaje vía **`construir_index_curado.py`** (debe regenerar `ids_*.npy` + meta + faiss).  
+Prohibido: `n_sit+=N`, reconcile, align-meta.
