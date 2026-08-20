@@ -74,7 +74,12 @@ def main() -> None:
             "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
         ),
     )
-    ap.add_argument("--batch-size", type=int, default=32)
+    ap.add_argument("--batch-size", type=int, default=16)
+    ap.add_argument(
+        "--device",
+        default=os.environ.get("TEKTRON_EMBED_DEVICE", "cpu"),
+        help="cpu|cuda — en Jetson usa cpu si la GPU está ocupada (llama/bridge)",
+    )
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
