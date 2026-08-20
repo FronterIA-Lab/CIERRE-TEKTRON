@@ -27,7 +27,7 @@ ESTA INVESTIGACIÓN NOS DEBE DAR UN CORPUS IDEAL DEFINIDO YA QUE TEKTRON TIENE V
     * Leyes, tratados, constituciones, marcos normativos.
     * Epistemologías del Sur (Quijano, Santos, Rivera Cusicanqui, Dussel, Mignolo).
     * Metodología MCC (núcleo Zenodo: [17728016](https://doi.org/10.5281/zenodo.17728016) marco + [21500800](https://doi.org/10.5281/zenodo.21500800) protocolo); conceptos satélite "Grieta Generativa", "Certeza sin Sustancia", "Soberanía Cognitiva".
-    * **Corpus autoritativo propio:** 16 papers Zenodo (2 = núcleo MCC; 14 = TEKTRON relacionado); fuente canónica Zenodo, no CLACSO.
+    * **Corpus autoritativo propio (ENTRA):** papers Zenodo de la arquitecta en `corpus/andamiaje_propio/` (15 PDFs + markdown; ver `ZENODO_CATALOGO_16.md`). Fuente canónica Zenodo, no CLACSO.
     * Casos documentados de extractivismo y resistencia territorial.
     * Normas técnicas (NOMs, manuales de Siemens/Modbus) como conocimiento TÉCNICO.
 * NO ENTRA (FUERA):
@@ -274,8 +274,10 @@ EN EL CHAT ME DAS EL PROTOCOLO DE CIERRE ELEGANTE Y SIN FALLAS POR FAVOR.
 
 - `tektron_macro_scan.sh` — mirada macro Jetson+SSD (solo lectura).
 - `tektron_corpus_auditoria.sh` — auditoría profunda: facebook/metadatos, duplicados, desparramado, candidatos KEEP/REVISION/BORRAR (no borra).
-- `tektron_zenodo_ingest.sh` + `zenodo_dois.txt` — inventariar/descargar Zenodo a `00_Core/raw/zenodo/` (canónico; no indexa L1 aún).
-- `ZENODO_CATALOGO_16.md` — **núcleo MCC = 17728016 + 21500800**; resto = corpus TEKTRON relacionado.
+- `tektron_zenodo_ingest.sh` + `zenodo_dois.txt` — inventariar/descargar Zenodo a `00_Core/raw/zenodo/`.
+- `tektron_sync_andamiaje_jetson.sh` — copiar `corpus/andamiaje_propio/zenodo/` a la Jetson.
+- `corpus/andamiaje_propio/` — **15 papers propios** (PDF + markdown ENTRA).
+- `ZENODO_CATALOGO_16.md` — **núcleo MCC = 17728016 + 21500800**; satélites + corpus TEKTRON.
 - `DIAGNOSTICO_MACRO_20260819.md` — diagnóstico del primer MACRO_REPORT.
 - `INVENTARIO_CORPUS_JETSON.md` — Fase −1 detallada (incluye búsqueda LLM Wiki Karpathy).
 - `ANALISIS_COMPLETO_TEKTRON.md` — evaluación de los 15 papers + corpus ideal + función objetivo MAXIMIZE.

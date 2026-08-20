@@ -5,29 +5,36 @@
 #   17728016  marco / praxis de soberanía cognitiva
 #   21500800  protocolo operativo (capas / glifos)
 #
-# El resto = corpus TEKTRON relacionado (no sustituyen al MCC).
+# SATÉLITES MCC — conceptos del método (no son el protocolo completo):
+#   19932561  certeza sin sustancia
+#   18800211  grieta generativa
+#
+# El resto = corpus TEKTRON relacionado (andamiaje SIT).
+# Lote local 2026-08-20: corpus/andamiaje_propio/ (15 PDFs + markdown).
 #
 # Uso:
 #   bash tektron_zenodo_ingest.sh
-#   bash tektron_zenodo_ingest.sh --scan-only
-#   bash tektron_zenodo_ingest.sh --with-artifacts
+#   bash tektron_sync_andamiaje_jetson.sh
 
 # --- NÚCLEO MCC ---
 10.5281/zenodo.17728016
 10.5281/zenodo.21500800
 
-# --- Corpus TEKTRON relacionado ---
+# --- SATÉLITES MCC ---
+10.5281/zenodo.19932561
+10.5281/zenodo.18800211
+
+# --- Corpus TEKTRON (incluye Neuroderechos 18491987) ---
 10.5281/zenodo.17587819
 10.5281/zenodo.17705442
 10.5281/zenodo.18324469
+10.5281/zenodo.18491987
 10.5281/zenodo.18492979
 10.5281/zenodo.18529874
 10.5281/zenodo.18652576
 10.5281/zenodo.18655577
 10.5281/zenodo.18655897
 10.5281/zenodo.18707186
-10.5281/zenodo.18800211
 10.5281/zenodo.19639576
-10.5281/zenodo.19932561
 10.5281/zenodo.20404028
 10.5281/zenodo.21500777

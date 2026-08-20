@@ -90,27 +90,31 @@ Acción: filtrar esas `fuente` de `chunks.jsonl` y reconstruir FAISS/BM25 (como 
 | `index_unificado` 60 652 | Auditar después; no swap |
 | Snapshots `_snapshots/` | Rollback |
 
-### E — INDEXAR desde Zenodo (fuente autoritativa)
+### E — INDEXAR andamiaje propio (Zenodo / papers de la arquitecta)
 
-Catálogo: **`ZENODO_CATALOGO_16.md`** + `zenodo_dois.txt`.
+**Sí ENTRA al conocimiento de TEKTRON** (corpus base / polo SIT), no es memoria de usuario.
 
-- **No** son publicaciones CLACSO (membrecía ≠ depósito).
-- `_clacso_archivo/TEKTRON_EVALUACION_CLACSO/` puede tener copias de evaluación; **Zenodo es canónico**.
+Lote local: `corpus/andamiaje_propio/` (15 PDFs + markdown extraído). Catálogo: `ZENODO_CATALOGO_16.md`.
 
-#### Núcleo MCC (2) — respaldan el método (prioridad L1)
+#### Núcleo MCC (2) — prioridad L1
 
 | Rol | DOI |
 |-----|-----|
 | MCC marco / praxis | https://doi.org/10.5281/zenodo.17728016 |
 | MCC protocolo operativo | https://doi.org/10.5281/zenodo.21500800 |
 
-Solo estos dos **definen** el MCC. Probes “¿Qué es el MCC?” deben anclarse aquí.
+#### Satélites + corpus TEKTRON
 
-#### Corpus TEKTRON relacionado (14)
+Incluye grieta, certeza, Neuroderechos (`18491987`), grafo, Tonalli, etc. Pendientes de archivo en este lote: BlackRock `18652576`, TEKTRON v4 `20404028`.
 
-Grieta, certeza sin sustancia, v4, grafo, Tonalli, etc. — andamiaje / satélites; **no** sustituyen el núcleo MCC. Lista completa en `ZENODO_CATALOGO_16.md`.
+**Sync Jetson:**
 
-**Pendiente:** ingest núcleo MCC primero → markdown → L1 → probes; luego el resto.
+```bash
+bash tektron_sync_andamiaje_jetson.sh
+# → /mnt/tektron/corpus/Corpus_Tektron_F12/00_Core/raw/zenodo/
+```
+
+Luego markdown → rebuild L1 → probes MCC.
 
 ---
 
