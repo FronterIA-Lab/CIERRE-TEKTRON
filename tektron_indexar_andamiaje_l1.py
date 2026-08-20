@@ -266,23 +266,21 @@ def main() -> None:
             for rec in new_records:
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
-        # update meta if present
-        meta_path = l1 / "meta.json"
-        meta = {}
-        if meta_path.exists():
-            try:
-                meta = json.loads(meta_path.read_text(encoding="utf-8"))
-            except Exception:
-                meta = {}
+        # NO tocar meta.json aquí (n_sit += N es la causa del AssertionError del bridge).
+        # Derivados (meta/faiss) solo vía reconcile:
+        #   tektron_reconcile_index_l1.py --apply [--rebuild-faiss]
         n_total = sum(1 for _ in chunks_path.open(encoding="utf-8", errors="ignore") if _.strip())
-        meta["n_chunks"] = n_total
-        meta["n_sit"] = int(meta.get("n_sit") or 0) + len(new_records)
-        meta["andamiaje_propio_utc"] = report["ts"]
-        meta["andamiaje_propio_added"] = len(new_records)
-        meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
-
-        report["faiss"] = try_rebuild_faiss(root, l1, new_texts, dry=False)
-        print(f"added_chunks={len(new_records)} total_chunks≈{n_total} faiss={report['faiss'].get('faiss')}")
+        report["n_chunks_after_append"] = n_total
+        report["faiss"] = {
+            "faiss": "DEFERRED",
+            "note": "run tektron_reconcile_index_l1.py --apply --rebuild-faiss",
+        }
+        print(
+            f"added_chunks={len(new_records)} total_chunks≈{n_total}\n"
+            "SIGUIENTE (obligatorio):\n"
+            "  /mnt/tektron/venv_tektron/bin/python3 "
+            "/mnt/tektron/workspace/tektron_reconcile_index_l1.py --apply --rebuild-faiss"
+        )
 
     if args.out_report:
         Path(args.out_report).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

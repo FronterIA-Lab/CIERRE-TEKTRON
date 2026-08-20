@@ -336,6 +336,15 @@ if should_run 4; then
   EXTRA=()
   [[ "$DRY" -eq 1 ]] && EXTRA+=(--dry-run)
   run "'$PY' '$INDEXER' --root '$ROOT' --core '$CORE' --out-report '$OUT/fase4_index.json' ${EXTRA[*]:-}"
+  # Derivados meta/faiss: UNA reconciliación (nunca n_sit += N)
+  RECON="$SCRIPT_DIR/tektron_reconcile_index_l1.py"
+  [[ -f "$RECON" ]] || RECON="$ROOT/workspace/tektron_reconcile_index_l1.py"
+  if [[ "$DRY" -eq 0 && -f "$RECON" ]]; then
+    log "  Reconcile index_l1 (meta + FAISS si desync)…"
+    run "CUDA_VISIBLE_DEVICES= '$PY' '$RECON' --l1 '$L1' --apply --rebuild-faiss"
+  elif [[ "$DRY" -eq 0 ]]; then
+    log "  AVISO: falta tektron_reconcile_index_l1.py — correrlo a mano antes del bridge"
+  fi
   log ""
 fi
 
