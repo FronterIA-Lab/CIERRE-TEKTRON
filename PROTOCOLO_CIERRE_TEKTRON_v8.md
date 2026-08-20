@@ -36,17 +36,21 @@ TEKTRON está cerrado solo si **todas** las condiciones valen:
 
 ## FASE −1 — Inventario total del corpus (BLOQUEANTE)
 
-**Objetivo:** revisar la Jetson entera — documentos, ubicaciones, estado, generaciones de índice, Wikipedia/general — **antes** de curar o cerrar.
+**Objetivo:** revisar la Jetson entera — documentos, ubicaciones, estado, generaciones de índice, LLM Wiki — **antes** de curar o cerrar.
 
-Ejecutar el playbook completo:
+### Arranque rápido (recomendado)
+
+En la Jetson, copiar `tektron_macro_scan.sh` a `/mnt/tektron/workspace/` y ejecutar:
 
 ```bash
-# En la Jetson:
-less /ruta/al/repo/INVENTARIO_CORPUS_JETSON.md
-# o copiar el archivo a /mnt/tektron/workspace/ y seguir secciones 0–10
+bash /mnt/tektron/workspace/tektron_macro_scan.sh
+# luego pegar en el chat:
+#   /mnt/tektron/workspace/macro_*/MACRO_REPORT.txt
 ```
 
-Salidas mínimas obligatorias en `$INV/`:
+El script es **solo lectura**. Detalle manual adicional: `INVENTARIO_CORPUS_JETSON.md`.
+
+Salidas mínimas obligatorias (vía script o playbook) en el directorio de inventario:
 
 | Archivo | Pregunta que responde |
 |---------|----------------------|
