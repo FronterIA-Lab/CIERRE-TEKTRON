@@ -125,10 +125,32 @@ def load_existing_fuentes(chunks_path: Path) -> set[str]:
 
 
 def try_rebuild_faiss(root: Path, l1: Path, new_texts: list[str], dry: bool) -> dict:
-    """Append embeddings if stack available; else leave note for construir_index_curado."""
+    """Prefer full rebuild helper; avoid append-on-desynced index."""
     info: dict = {"faiss": "skipped"}
-    if dry or not new_texts:
+    if dry:
         return info
+    rebuild = root / "workspace" / "tektron_rebuild_faiss_from_chunks.py"
+    if not rebuild.exists():
+        # same dir as this script
+        rebuild = Path(__file__).resolve().parent / "tektron_rebuild_faiss_from_chunks.py"
+    if rebuild.exists():
+        import subprocess
+
+        r = subprocess.run(
+            [sys.executable, str(rebuild), "--root", str(root)],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+        )
+        info["faiss"] = "full_rebuild"
+        info["returncode"] = r.returncode
+        info["stdout_tail"] = (r.stdout or "")[-2500:]
+        info["stderr_tail"] = (r.stderr or "")[-2500:]
+        print(r.stdout or "")
+        if r.stderr:
+            print(r.stderr, file=sys.stderr)
+        return info
+
     constructor = root / "construir_index_curado.py"
     if constructor.exists():
         import subprocess
@@ -145,34 +167,8 @@ def try_rebuild_faiss(root: Path, l1: Path, new_texts: list[str], dry: bool) -> 
         info["stderr_tail"] = (r.stderr or "")[-2000:]
         return info
 
-    # Best-effort MiniLM + FAISS append
-    try:
-        import faiss  # type: ignore
-        import numpy as np
-        from sentence_transformers import SentenceTransformer
-    except Exception as e:
-        info["faiss"] = f"unavailable:{e}"
-        info["hint"] = "Ejecutar construir_index_curado.py tras poblar chunks.jsonl"
-        return info
-
-    model_name = os.environ.get("TEKTRON_EMBED_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
-    model = SentenceTransformer(model_name)
-    emb = model.encode(new_texts, show_progress_bar=True, normalize_embeddings=True)
-    emb = np.asarray(emb, dtype="float32")
-    idx_path = l1 / "faiss.idx"
-    if idx_path.exists():
-        index = faiss.read_index(str(idx_path))
-        if index.ntotal > 0 and index.d != emb.shape[1]:
-            info["faiss"] = f"dim_mismatch existing={index.d} new={emb.shape[1]}"
-            return info
-        index.add(emb)
-    else:
-        index = faiss.IndexFlatIP(emb.shape[1])
-        index.add(emb)
-    faiss.write_index(index, str(idx_path))
-    info["faiss"] = "appended"
-    info["ntotal"] = int(index.ntotal)
-    info["added"] = int(emb.shape[0])
+    info["faiss"] = "unavailable"
+    info["hint"] = "Colocar tektron_rebuild_faiss_from_chunks.py en workspace/"
     return info
 
 

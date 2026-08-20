@@ -280,8 +280,15 @@ PY
     # Rebuild FAISS/BM25 si existe el constructor local
     if [[ -f "$ROOT/construir_index_curado.py" ]]; then
       run "cd '$ROOT' && '$PY' construir_index_curado.py --from-chunks '$L1/chunks.jsonl' --out '$L1' 2>&1 | tee '$OUT/fase2_rebuild.log' || true"
+      # Si abortó por desfase faiss≠jsonl, rebuild total:
+      REBUILD="$SCRIPT_DIR/tektron_rebuild_faiss_from_chunks.py"
+      [[ -f "$REBUILD" ]] || REBUILD="$ROOT/workspace/tektron_rebuild_faiss_from_chunks.py"
+      if [[ -f "$REBUILD" ]]; then
+        log "  Intentando rebuild FAISS desde jsonl…"
+        run "'$PY' '$REBUILD' --root '$ROOT' 2>&1 | tee '$OUT/fase2_faiss_rebuild.log' || true"
+      fi
     else
-      log "  AVISO: no hay construir_index_curado.py — fase 4 reindexará tras añadir andamiaje"
+      log "  AVISO: no hay construir_index_curado.py — usar tektron_rebuild_faiss_from_chunks.py"
     fi
   fi
   log ""

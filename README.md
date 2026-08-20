@@ -274,6 +274,8 @@ EN EL CHAT ME DAS EL PROTOCOLO DE CIERRE ELEGANTE Y SIN FALLAS POR FAVOR.
 
 - `tektron_macro_scan.sh` — mirada macro Jetson+SSD (solo lectura).
 - `tektron_corpus_auditoria.sh` — auditoría profunda: facebook/metadatos, duplicados, desparramado, candidatos KEEP/REVISION/BORRAR (no borra).
+- `tektron_rebuild_faiss_from_chunks.py` — **urgente post-corrección:** alinea `faiss.idx` con `chunks.jsonl` (el curado abortó por desfase).
+- `ESTADO_POST_CORRECCION_20260819.md` — resultado del run + siguiente paso.
 - `tektron_correccion_cierre.sh` — **script maestro de corrección** (plan: cuarentena → curar L1 → instalar papers en 00_Core → indexar → probes). Prioridad al plan completo.
 - `tektron_indexar_andamiaje_l1.py` — indexa markdown de `00_Core` en `index_l1` (MCC primero).
 - `tektron_zenodo_ingest.sh` + `zenodo_dois.txt` — respaldo descarga desde Zenodo.
