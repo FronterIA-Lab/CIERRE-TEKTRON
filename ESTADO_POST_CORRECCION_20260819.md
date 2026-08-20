@@ -1,44 +1,25 @@
-# Estado post-corrección (Jetson)
+# Estado — FREEZE (2026-08-20)
 
-**Objetivo:** MAX Árboles de Espejos + MCC + SHA (N0 = piso).
+**No cerrar. No parchear. Recolectar contrato.**
 
-## Diagnóstico limpio (no ciclar)
+Ver: **`REPLANTAMIENTO_CIERRE_RIGOR.md`**
 
-| Pieza | Estado |
-|-------|--------|
-| `chunks.jsonl` | 12 273 (andamiaje incluido) |
-| FAISS | sync OK · dim 768 · **no es el bloqueo actual** |
-| Bridge `:8000` | crash-loop: `assert len(set_sit) == meta["n_sit"]` |
-| Causa | polos `SIT` vs `SITUADO` + `n_sit += N` ad-hoc en meta |
-| Chunks ¿suficientes? | **Sí** para Gate MCC (FAISS Top-8 trae zenodo MCC) |
+## Por qué freeze
 
-## Solución limpia (una sola)
+Tras reconcile: FAISS OK, polos normalizados a SITUADO, meta=Counter — y
+`IndexL1` **sigue** en `assert len(set_sit)==meta["n_sit"]`.
 
-Ver **`PROCEDIMIENTO_LIMPIO_INDEX_L1.md`**.
+Eso demuestra que el predicado de `set_sit` **no** es el Counter que asumimos.
+Seguir con align-meta / restart es anti-arquitectura.
 
-```bash
-sudo systemctl stop tektron-bridge.service
+## Bloqueado
 
-# iMac: git pull && scp tektron_reconcile_index_l1.py …:/mnt/tektron/workspace/
+- reconcile --apply  
+- align-meta  
+- rebuild FAISS “por si acaso”  
+- restart bridge como fix  
 
-/mnt/tektron/venv_tektron/bin/python3 \
-  /mnt/tektron/workspace/tektron_reconcile_index_l1.py --dry-run
+## Siguiente
 
-/mnt/tektron/venv_tektron/bin/python3 \
-  /mnt/tektron/workspace/tektron_reconcile_index_l1.py --apply
-# (añade --rebuild-faiss SOLO si dry-run dice faiss ok=False)
-
-# smoke OK → arrancar bridge UNA vez
-cd /mnt/tektron
-nohup ./venv_tektron/bin/python3 -u tektron_bridge_l1.py \
-  >> workspace/bridge_l1.log 2>&1 &
-ss -ltn | grep 8000
-
-curl -s http://127.0.0.1:8000/retrieve \
-  -H 'Content-Type: application/json' \
-  -d '{"query":"¿Qué es el MCC?"}'
-```
-
-**Prohibido mientras tanto:** restart systemd en loop, rebuild FAISS “por si acaso”, otro diagnose sin reconcile.
-
-Cuando `/retrieve` traiga fuentes zenodo → Gate v8.
+Pegar en Jetson el bloque **Gate G0** de `REPLANTAMIENTO_CIERRE_RIGOR.md`
+(sobre todo `sed -n '1,250p' /mnt/tektron/retrieve_l1.py`).
